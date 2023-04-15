@@ -137,17 +137,6 @@ function setup.plugins()
 
   local plugins = {
     {
-      "lambdalisue/fern.vim",
-      config = setup.plugin_fern,
-    },
-    {
-      "lambdalisue/fern-hijack.vim",
-    },
-    {
-      "lambdalisue/fern-git-status.vim",
-    },
-
-    {
       "udalov/kotlin-vim",
       ft = "kotlin",
     },
@@ -157,85 +146,93 @@ function setup.plugins()
     },
 
     {
+      "lambdalisue/fern.vim",
+      event = "UIEnter",
+      config = setup.plugin_fern,
+    },
+    {
+      "lambdalisue/fern-git-status.vim",
+      event = "UIEnter",
+    },
+    {
       "sainnhe/everforest",
       event = "UIEnter",
       config = setup.plugin_everforest,
     },
-
     {
       "jiangmiao/auto-pairs",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_auto_pairs,
     },
     {
       "mfussenegger/nvim-jdtls",
-			event = "VeryLazy",
+			event = "UIEnter",
       config = setup.plugin_nvim_jdtls,
     },
     {
       "tsuoihito/vim-bufferlist",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_vim_bufferlist,
     },
     {
       "neovim/nvim-lspconfig",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "williamboman/mason.nvim",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_mason,
     },
     {
       "williamboman/mason-lspconfig.nvim",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_mason_lspconfig,
     },
     {
       "tpope/vim-fugitive",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "RRethy/vim-illuminate",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "rbtnn/vim-ambiwidth",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "mattn/vim-maketable",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "thinca/vim-partedit",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "AndrewRadev/bufferize.vim",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "nvim-lua/plenary.nvim",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "nvim-telescope/telescope.nvim",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_telescope,
     },
     {
       "stevearc/aerial.nvim",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_aerial,
     },
     {
       "mfussenegger/nvim-dap",
-      event = "VeryLazy",
+      event = "UIEnter",
     },
     {
       "monkoose/matchparen.nvim",
-      event = "VeryLazy",
+      event = "UIEnter",
       config = setup.plugin_matchparen,
     },
 
@@ -310,6 +307,8 @@ function setup.jdtls()
   if util.is_windows() then
 		setup.jdtls_win()
 	end
+
+	-- for lazy loading
 	util.reload_filetype()
 end
 
@@ -349,6 +348,9 @@ end
 
 function setup.plugin_auto_pairs()
   vim.api.nvim_set_var("AutoPairsCenterLine", false)
+
+	-- for lazy loading
+	vim.fn["AutoPairsTryInit"]()
 end
 
 function setup.plugin_everforest()
@@ -377,6 +379,7 @@ function setup.plugin_mason_lspconfig()
     ["lua_ls"] = setup.lua_ls,
   })
 
+	-- for lazy loading
 	util.reload_filetype()
 end
 
