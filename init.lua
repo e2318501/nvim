@@ -301,15 +301,15 @@ function setup.plugin_nvim_jdtls()
 		pattern = "java",
 		callback = setup.jdtls,
 	})
+
+	-- for lazy loading
+	util.reload_filetype()
 end
 
 function setup.jdtls()
   if util.is_windows() then
 		setup.jdtls_win()
 	end
-
-	-- for lazy loading
-	util.reload_filetype()
 end
 
 function setup.jdtls_win()
