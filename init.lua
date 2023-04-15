@@ -2,14 +2,12 @@
 -- All configuration for Neovim
 --
 
-local vim = vim
-
 local setup = {}
 local util = {}
 
 function setup.main()
   setup.general()
-  setup.lsp()
+  setup.lsp_ui()
   setup.commands()
   setup.plugins()
 end
@@ -31,6 +29,7 @@ function setup.general()
   vim.api.nvim_set_option("showcmd", false)
   vim.api.nvim_set_option("ignorecase", true)
   vim.api.nvim_set_option("smartcase", true)
+  vim.api.nvim_set_option("completeopt", "menu,menuone")
   vim.api.nvim_win_set_option(0, "number", false)
   vim.api.nvim_win_set_option(0, "cursorline", true)
   vim.api.nvim_win_set_option(0, "signcolumn", "no")
@@ -91,7 +90,7 @@ function setup.indents()
   end
 end
 
-function setup.lsp()
+function setup.lsp_ui()
   vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
       local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -115,63 +114,6 @@ function setup.lsp()
       vim.api.nvim_buf_set_option(args.buf, "omnifunc", "v:lua.vim.lsp.omnifunc")
     end,
   })
-
-  setup.other_lsp()
-end
-
-function setup.other_lsp()
-  local lsps = {
-    {
-      pattern = "java",
-      callback = setup.jdtls,
-    },
-  }
-  for _, l in pairs(lsps) do
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = l.pattern,
-      callback = l.callback,
-    })
-  end
-end
-
-function setup.jdtls()
-  if util.is_windows() then
-    setup.jdtls_win()
-  end
-end
-
-function setup.jdtls_win()
-  local local_app_data = os.getenv("LOCALAPPDATA")
-
-  local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-  local workspace_dir = local_app_data .. "\\eclipse.jdt.ls\\data\\" .. project_name
-
-  local config = {
-    cmd = {
-      "java",
-      "-Declipse.application=org.eclipse.jdt.ls.core.id1",
-      "-Dosgi.bundles.defaultStartLevel=4",
-      "-Declipse.product=org.eclipse.jdt.ls.core.product",
-      "-Dlog.protocol=true",
-      "-Dlog.level=ALL",
-      "-Xmx1G",
-      "--add-modules=ALL-SYSTEM",
-      "--add-opens", "java.base/java.util=ALL-UNNAMED",
-      "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-      "-jar", local_app_data .. "\\eclipse.jdt.ls\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
-      "-configuration", local_app_data .. "\\eclipse.jdt.ls\\config_win",
-      "-data", workspace_dir
-    },
-    root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew" }),
-    settings = {
-      java = {},
-    },
-    init_options = {
-      bundles = {},
-    },
-  }
-
-  require("jdtls").start_or_attach(config)
 end
 
 function setup.commands()
@@ -206,10 +148,6 @@ function setup.plugins()
     },
 
     {
-      "mfussenegger/nvim-jdtls",
-      ft = "java",
-    },
-    {
       "udalov/kotlin-vim",
       ft = "kotlin",
     },
@@ -219,80 +157,85 @@ function setup.plugins()
     },
 
     {
-      "jiangmiao/auto-pairs",
-      event = "VeryLazy",
-      config = setup.plugin_auto_pairs,
-    },
-
-    {
       "sainnhe/everforest",
       event = "UIEnter",
       config = setup.plugin_everforest,
     },
+
+    {
+      "jiangmiao/auto-pairs",
+      event = "VeryLazy",
+      config = setup.plugin_auto_pairs,
+    },
+    {
+      "mfussenegger/nvim-jdtls",
+			event = "VeryLazy",
+      config = setup.plugin_nvim_jdtls,
+    },
     {
       "tsuoihito/vim-bufferlist",
-      event = "UIEnter",
+      event = "VeryLazy",
       config = setup.plugin_vim_bufferlist,
     },
     {
       "neovim/nvim-lspconfig",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "williamboman/mason.nvim",
-      event = "UIEnter",
+      event = "VeryLazy",
       config = setup.plugin_mason,
     },
     {
       "williamboman/mason-lspconfig.nvim",
-      event = "UIEnter",
+      event = "VeryLazy",
       config = setup.plugin_mason_lspconfig,
     },
     {
       "tpope/vim-fugitive",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "RRethy/vim-illuminate",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "rbtnn/vim-ambiwidth",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "mattn/vim-maketable",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "thinca/vim-partedit",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "AndrewRadev/bufferize.vim",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "nvim-lua/plenary.nvim",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "nvim-telescope/telescope.nvim",
-      event = "UIEnter",
+      event = "VeryLazy",
       config = setup.plugin_telescope,
     },
     {
       "stevearc/aerial.nvim",
-      event = "UIEnter",
+      event = "VeryLazy",
       config = setup.plugin_aerial,
     },
     {
       "mfussenegger/nvim-dap",
-      event = "UIEnter",
+      event = "VeryLazy",
     },
     {
       "monkoose/matchparen.nvim",
-      event = "UIEnter",
+      event = "VeryLazy",
       config = setup.plugin_matchparen,
     },
 
@@ -356,6 +299,54 @@ function setup.plugin_fern()
   })
 end
 
+function setup.plugin_nvim_jdtls()
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = "java",
+		callback = setup.jdtls,
+	})
+end
+
+function setup.jdtls()
+  if util.is_windows() then
+		setup.jdtls_win()
+	end
+	util.reload_filetype()
+end
+
+function setup.jdtls_win()
+  local local_app_data = os.getenv("LOCALAPPDATA")
+
+  local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+  local workspace_dir = local_app_data .. "\\eclipse.jdt.ls\\data\\" .. project_name
+
+  local config = {
+    cmd = {
+      "java",
+      "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+      "-Dosgi.bundles.defaultStartLevel=4",
+      "-Declipse.product=org.eclipse.jdt.ls.core.product",
+      "-Dlog.protocol=true",
+      "-Dlog.level=ALL",
+      "-Xmx1G",
+      "--add-modules=ALL-SYSTEM",
+      "--add-opens", "java.base/java.util=ALL-UNNAMED",
+      "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+      "-jar", local_app_data .. "\\eclipse.jdt.ls\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
+      "-configuration", local_app_data .. "\\eclipse.jdt.ls\\config_win",
+      "-data", workspace_dir
+    },
+    root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew" }),
+    settings = {
+      java = {},
+    },
+    init_options = {
+      bundles = {},
+    },
+  }
+
+  require("jdtls").start_or_attach(config)
+end
+
 function setup.plugin_auto_pairs()
   vim.api.nvim_set_var("AutoPairsCenterLine", false)
 end
@@ -382,7 +373,22 @@ function setup.plugin_mason_lspconfig()
       if not util.contains(ignored_servers, server_name) then
         require("lspconfig")[server_name].setup({})
       end
-    end
+    end,
+    ["lua_ls"] = setup.lua_ls,
+  })
+
+	util.reload_filetype()
+end
+
+function setup.lua_ls()
+  require("lspconfig")["lua_ls"].setup({
+    settings = {
+      Lua = {
+        diagnostics = {
+          globals = { "vim" },
+        },
+      },
+    },
   })
 end
 
@@ -429,6 +435,10 @@ end
 
 function util.executable(name)
   return vim.fn.executable(name) == 1
+end
+
+function util.reload_filetype()
+	vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
 end
 
 setup.main()
