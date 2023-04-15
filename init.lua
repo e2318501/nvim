@@ -166,7 +166,7 @@ function setup.plugins()
     },
     {
       "mfussenegger/nvim-jdtls",
-			event = "UIEnter",
+      event = "UIEnter",
       config = setup.plugin_nvim_jdtls,
     },
     {
@@ -297,19 +297,19 @@ function setup.plugin_fern()
 end
 
 function setup.plugin_nvim_jdtls()
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = "java",
-		callback = setup.jdtls,
-	})
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = "java",
+    callback = setup.jdtls,
+  })
 
-	-- for lazy loading
-	util.reload_filetype()
+  -- for lazy loading
+  util.reload_filetype()
 end
 
 function setup.jdtls()
   if util.is_windows() then
-		setup.jdtls_win()
-	end
+    setup.jdtls_win()
+  end
 end
 
 function setup.jdtls_win()
@@ -349,8 +349,8 @@ end
 function setup.plugin_auto_pairs()
   vim.api.nvim_set_var("AutoPairsCenterLine", false)
 
-	-- for lazy loading
-	vim.fn["AutoPairsTryInit"]()
+  -- for lazy loading
+  vim.fn["AutoPairsTryInit"]()
 end
 
 function setup.plugin_everforest()
@@ -379,8 +379,8 @@ function setup.plugin_mason_lspconfig()
     ["lua_ls"] = setup.lua_ls,
   })
 
-	-- for lazy loading
-	util.reload_filetype()
+  -- for lazy loading
+  util.reload_filetype()
 end
 
 function setup.lua_ls()
@@ -441,7 +441,7 @@ function util.executable(name)
 end
 
 function util.reload_filetype()
-	vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
+  vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
 end
 
 setup.main()
