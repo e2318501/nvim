@@ -137,6 +137,10 @@ function setup.plugins()
 
   local plugins = {
     {
+      "rbtnn/vim-ambiwidth",
+    },
+
+    {
       "udalov/kotlin-vim",
       ft = "kotlin",
     },
@@ -194,10 +198,6 @@ function setup.plugins()
     },
     {
       "RRethy/vim-illuminate",
-      event = "UIEnter",
-    },
-    {
-      "rbtnn/vim-ambiwidth",
       event = "UIEnter",
     },
     {
