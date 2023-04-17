@@ -308,15 +308,13 @@ end
 
 function setup.jdtls()
   if util.is_windows() then
-    setup.jdtls_win()
+    setup._jdtls(os.getenv("LOCALAPPDATA") .. "\\eclipse.jdt.ls")
   end
 end
 
-function setup.jdtls_win()
-  local local_app_data = os.getenv("LOCALAPPDATA")
-
+function setup._jdtls(jdtls_home)
   local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-  local workspace_dir = local_app_data .. "\\eclipse.jdt.ls\\data\\" .. project_name
+  local workspace_dir = jdtls_home .. "\\data\\" .. project_name
 
   local config = {
     cmd = {
@@ -330,8 +328,8 @@ function setup.jdtls_win()
       "--add-modules=ALL-SYSTEM",
       "--add-opens", "java.base/java.util=ALL-UNNAMED",
       "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-      "-jar", local_app_data .. "\\eclipse.jdt.ls\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
-      "-configuration", local_app_data .. "\\eclipse.jdt.ls\\config_win",
+      "-jar", jdtls_home .. "\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
+      "-configuration", jdtls_home .. "\\config_win",
       "-data", workspace_dir
     },
     root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew" }),
