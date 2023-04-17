@@ -56,6 +56,8 @@ function setup.terminal()
       vim.cmd("startinsert")
     end,
   })
+  vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
+  vim.keymap.set("t", "<C-[>", "<C-\\><C-n>")
 end
 
 function setup.shell()
@@ -117,8 +119,8 @@ function setup.lsp_ui()
 end
 
 function setup.commands()
-  vim.api.nvim_create_user_command("T", "split | wincmd j | resize 15 | terminal <args>", { nargs = "*" })
-  vim.api.nvim_create_user_command("Editrc", "edit $MYVIMRC", { nargs = 0 })
+  vim.api.nvim_create_user_command("Terminal", "belowright new | terminal <args>", { nargs = "*" })
+  vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
 end
 
 function setup.plugins()
