@@ -1,6 +1,7 @@
 {
   "aerial.nvim": { "branch": "master", "commit": "a2beef7cd6b93c1681442c2410c76b98a81166b1" },
   "auto-pairs": { "branch": "master", "commit": "39f06b873a8449af8ff6a3eee716d3da14d63a76" },
+  "badapple.nvim": { "branch": "master", "commit": "d3865cc2c30450022efb0e6c9056595372f40626" },
   "bufferize.vim": { "branch": "main", "commit": "ec7c4445a97f19e5784a6fb6ad3c3d4a8ff505ac" },
   "everforest": { "branch": "master", "commit": "83a4361d0797ff8e0c96dd750e60947bfab936e4" },
   "fern-git-status.vim": { "branch": "master", "commit": "151336335d3b6975153dad77e60049ca7111da8e" },

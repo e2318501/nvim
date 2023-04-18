@@ -121,6 +121,9 @@ end
 function setup.commands()
   vim.api.nvim_create_user_command("Terminal", "belowright new | terminal <args>", { nargs = "*" })
   vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
+  vim.api.nvim_create_user_command("FloatTerm", util.open_floating_terminal, { nargs = 0 })
+  vim.api.nvim_create_user_command("LightMode", "set background=light", { nargs = 0 })
+  vim.api.nvim_create_user_command("DarkMode", "set background=dark", { nargs = 0 })
 end
 
 function setup.plugins()
@@ -237,6 +240,10 @@ function setup.plugins()
       event = "UIEnter",
       config = setup.plugin_matchparen,
     },
+    {
+      "tsuoihito/badapple.nvim",
+      event = "UIEnter",
+    },
 
     {
       "andweeb/presence.nvim",
@@ -310,14 +317,19 @@ end
 
 function setup.jdtls()
   if util.is_windows() then
-    setup._jdtls(os.getenv("LOCALAPPDATA") .. "\\eclipse.jdt.ls")
+    setup.jdtls_win()
   end
 end
 
-function setup._jdtls(jdtls_home)
-  local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-  local workspace_dir = jdtls_home .. "\\data\\" .. project_name
+function setup.jdtls_win()
+  local jdtls_home = os.getenv("LOCALAPPDATA") .. "\\eclipse.jdt.ls"
+  local jar = jdtls_home .. "\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar"
+  local configuration = jdtls_home .. "\\config_win"
+  local data = jdtls_home .. "\\data\\" .. vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+  setup._jdtls(jar, configuration, data)
+end
 
+function setup._jdtls(jar, configuration, data)
   local config = {
     cmd = {
       "java",
@@ -330,9 +342,9 @@ function setup._jdtls(jdtls_home)
       "--add-modules=ALL-SYSTEM",
       "--add-opens", "java.base/java.util=ALL-UNNAMED",
       "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-      "-jar", jdtls_home .. "\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
-      "-configuration", jdtls_home .. "\\config_win",
-      "-data", workspace_dir
+      "-jar", jar,
+      "-configuration", configuration,
+      "-data", data
     },
     root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew" }),
     settings = {
@@ -442,6 +454,44 @@ end
 
 function util.reload_filetype()
   vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
+end
+
+function util.get_term_bufnr()
+  for _, buf in pairs(vim.fn.getbufinfo()) do
+    if buf.name:find("^term://") ~= nil then
+      return buf.bufnr
+    end
+  end
+  return nil
+end
+
+function util.open_floating_window(bufnr)
+  local columns = vim.api.nvim_get_option("columns")
+  local lines = vim.api.nvim_get_option("lines")
+  local width = math.ceil(columns * 0.7)
+  local height = math.ceil(lines * 0.7)
+  local config = {
+    relative = "editor",
+    width = width,
+    height = height,
+    col = (columns - width) * 0.5,
+    row = (lines - height) * 0.5,
+    anchor = "NW",
+    style = "minimal"
+  }
+  vim.api.nvim_open_win(bufnr, 0, config)
+end
+
+function util.open_floating_terminal()
+  local term_bufnr = util.get_term_bufnr()
+  if term_bufnr ~= nil then
+    util.open_floating_window(term_bufnr)
+    vim.cmd("startinsert")
+  else
+    local new_term_bufnr = vim.api.nvim_create_buf(false, false)
+    util.open_floating_window(new_term_bufnr)
+    vim.cmd("terminal")
+  end
 end
 
 setup.main()
