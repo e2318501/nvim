@@ -319,19 +319,14 @@ end
 
 function setup.jdtls()
   if util.is_windows() then
-    setup.jdtls_win()
+    setup._jdtls("~/AppData/Local/eclipse.jdt.ls", "config_win")
   end
 end
 
-function setup.jdtls_win()
-  local jdtls_home = os.getenv("LOCALAPPDATA") .. "\\eclipse.jdt.ls"
-  local jar = jdtls_home .. "\\plugins\\org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar"
-  local configuration = jdtls_home .. "\\config_win"
-  local data = jdtls_home .. "\\data\\" .. vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-  setup._jdtls(jar, configuration, data)
-end
-
-function setup._jdtls(jar, configuration, data)
+function setup._jdtls(jdtls_home, config_name)
+  local jar = vim.fn.glob(jdtls_home .. "/plugins/org.eclipse.equinox.launcher_*.jar")
+  local configuration = vim.fn.glob(jdtls_home .. "/" .. config_name)
+  local data = vim.fn.glob(jdtls_home .. "/data/" .. vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t"))
   local config = {
     cmd = {
       "java",
@@ -348,9 +343,17 @@ function setup._jdtls(jar, configuration, data)
       "-configuration", configuration,
       "-data", data
     },
-    root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew" }),
+    root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml" }),
     settings = {
-      java = {},
+      java = {
+        signatureHelp = { enabled = true },
+        sources = {
+          organizeImports = {
+            starThreshold = 9999,
+            staticStarThreshold = 9999,
+          },
+        },
+      },
     },
     init_options = {
       bundles = {},
