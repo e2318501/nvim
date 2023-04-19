@@ -106,6 +106,7 @@ function setup.lsp_ui()
       vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { buffer = args.buf })
       vim.keymap.set("n", "gc", vim.lsp.buf.code_action, { buffer = args.buf })
       vim.keymap.set("n", "gl", vim.lsp.buf.document_symbol, { buffer = args.buf })
+      vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = args.buf })
       vim.api.nvim_buf_create_user_command(
         args.buf,
         "Rename",
