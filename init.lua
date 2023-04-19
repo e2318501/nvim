@@ -173,9 +173,9 @@ function setup.plugins()
       config = setup.plugin_everforest,
     },
     {
-      "jiangmiao/auto-pairs",
+      "windwp/nvim-autopairs",
       event = "UIEnter",
-      config = setup.plugin_auto_pairs,
+      config = setup.plugin_nvim_autopairs,
     },
     {
       "mfussenegger/nvim-jdtls",
@@ -253,6 +253,27 @@ function setup.plugins()
       "andweeb/presence.nvim",
       lazy = true,
     },
+    {
+      "hrsh7th/nvim-cmp",
+      event = "UIEnter",
+      config = setup.plugin_nvim_cmp,
+    },
+    {
+      "hrsh7th/cmp-nvim-lsp",
+      event = "UIEnter",
+    },
+    {
+      "hrsh7th/vim-vsnip",
+      event = "UIEnter",
+    },
+    {
+      "hrsh7th/cmp-buffer",
+      event = "UIEnter",
+    },
+    {
+      "hrsh7th/cmp-path",
+      event = "UIEnter",
+    },
   }
 
   local config = {
@@ -310,6 +331,72 @@ function setup.plugin_fern()
   })
 end
 
+function setup.plugin_nvim_autopairs()
+  local autopairs = require("nvim-autopairs")
+  local Rule = require("nvim-autopairs.rule")
+  local cond = require("nvim-autopairs.conds")
+
+  autopairs.setup({
+    map_c_h = true,
+    map_c_w = true,
+  })
+
+  -- Add spaces between parentheses
+  local brackets = { { "(", ")" }, { "[", "]" }, { "{", "}" } }
+  autopairs.add_rules({
+    Rule(" ", " ")
+      :with_pair(function(opts)
+        local pair = opts.line:sub(opts.col - 1, opts.col)
+        return vim.tbl_contains({
+          brackets[1][1] .. brackets[1][2],
+          brackets[2][1] .. brackets[2][2],
+          brackets[3][1] .. brackets[3][2],
+        }, pair)
+      end)
+  })
+  for _, bracket in pairs(brackets) do
+    autopairs.add_rules({
+      Rule(bracket[1] .. " ", " " .. bracket[2])
+        :with_pair(function() return false end)
+        :with_move(function(opts)
+          return opts.prev_char:match(".%" .. bracket[2]) ~= nil
+        end)
+        :use_key(bracket[2])
+    })
+  end
+
+  -- auto addspace on =
+  autopairs.add_rules({
+    Rule("=", "", { "-sh", "-bash", "-zsh" })
+      :with_pair(cond.not_inside_quote())
+      :with_pair(function(opts)
+        local last_char = opts.line:sub(opts.col - 1, opts.col - 1)
+        if last_char:match("[%w%=%s]") then
+          return true
+        end
+        return false
+      end)
+      :replace_endpair(function(opts)
+        local prev_2char = opts.line:sub(opts.col - 2, opts.col - 1)
+        local next_char = opts.line:sub(opts.col, opts.col)
+        next_char = next_char == " " and "" or " "
+        if prev_2char:match("%w$") then
+          return "<bs> =" .. next_char
+        end
+        if prev_2char:match("%=$") then
+          return next_char
+        end
+        if prev_2char:match("=") then
+          return "<bs><bs>=" .. next_char
+        end
+        return ""
+      end)
+      :set_end_pair_length(0)
+      :with_move(cond.none())
+      :with_del(cond.none())
+  })
+end
+
 function setup.plugin_nvim_jdtls()
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "java",
@@ -361,16 +448,10 @@ function setup._jdtls(jdtls_home, config_name)
     init_options = {
       bundles = {},
     },
+    capabilities = require("cmp_nvim_lsp").default_capabilities(),
   }
 
   require("jdtls").start_or_attach(config)
-end
-
-function setup.plugin_auto_pairs()
-  vim.api.nvim_set_var("AutoPairsCenterLine", false)
-
-  -- for lazy loading
-  vim.fn["AutoPairsTryInit"]()
 end
 
 function setup.plugin_everforest()
@@ -393,7 +474,9 @@ function setup.plugin_mason_lspconfig()
     function(server_name)
       local ignored_servers = { "jdtls" }
       if not util.contains(ignored_servers, server_name) then
-        require("lspconfig")[server_name].setup({})
+        require("lspconfig")[server_name].setup({
+          capabilities = require("cmp_nvim_lsp").default_capabilities()
+        })
       end
     end,
     ["lua_ls"] = setup.lua_ls,
@@ -437,6 +520,38 @@ end
 
 function setup.plugin_matchparen()
   require("matchparen").setup()
+end
+
+function setup.plugin_nvim_cmp()
+  local cmp = require("cmp")
+  cmp.setup({
+    sources = {
+      { name = "nvim_lsp" },
+      { name = "buffer" },
+      { name = "path" },
+    },
+    snippet = {
+      expand = function(args)
+        vim.fn["vsnip#anonymous"](args.body)
+      end,
+    },
+    mapping = cmp.mapping.preset.insert({
+      [ "<C-p>" ] = cmp.mapping.select_prev_item(),
+      [ "<C-n>" ] = cmp.mapping.select_next_item(),
+      [ "<C-l>" ] = cmp.mapping.complete(),
+      [ "<C-e>" ] = cmp.mapping.abort(),
+      [ "<C-y>" ] = cmp.mapping.confirm({ select = true }),
+      [ "<C-b>" ] = cmp.mapping.scroll_docs(-4),
+      [ "<C-f>" ] = cmp.mapping.scroll_docs(4),
+    }),
+  })
+
+  -- If you want insert `(` after select function or method item
+  local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+  cmp.event:on(
+    "confirm_done",
+    cmp_autopairs.on_confirm_done()
+  )
 end
 
 function util.contains(list, x)
