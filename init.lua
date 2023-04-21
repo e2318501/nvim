@@ -322,6 +322,10 @@ function s.setup_plugins()
       event = "UIEnter",
       config = true,
     },
+    {
+      "iamcco/markdown-preview.nvim",
+      event = "UIEnter",
+    },
   }
 
   local config = {
