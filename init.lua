@@ -143,10 +143,10 @@ end
 --- Define shortcuts and my own functions.
 function s.setup_utils()
   vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
-  vim.api.nvim_create_user_command("Terminal", s.open_floating_terminal, { nargs = 0 })
   vim.api.nvim_create_user_command("LightMode", "set background=light", { nargs = 0 })
   vim.api.nvim_create_user_command("DarkMode", "set background=dark", { nargs = 0 })
   vim.api.nvim_create_user_command("CdHere", "cd %:h", { nargs = 0 })
+  vim.keymap.set("n", "<F4>", s.open_floating_terminal)
 end
 
 --- Load plugins using lazy.nvim.
