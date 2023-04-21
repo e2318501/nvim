@@ -1,20 +1,27 @@
---
--- All configuration for Neovim
---
+--- All of my configuration for Neovim
+--- @author nutchi <nutchi.net>
 
-local setup = {}
-local util = {}
 
-function setup.main()
-  setup.general()
-  setup.lsp_ui()
-  setup.commands()
-  setup.plugins()
+--- A scope for local functions, like `s:` in Vim Script.
+--- I want to order functions by abstraction level, so forward-definition is needed.
+local s = {}
+
+--- Data container for my own functions.
+local vimrc_data = {}
+
+--- Setup all of the configuration.
+--- It is called after all declarations of other functions.
+function s.main()
+  s.setup_general()
+  s.setup_lsp_ui()
+  s.setup_commands()
+  s.setup_plugins()
 end
 
-function setup.general()
+--- Configure general options.
+function s.setup_general()
   vim.api.nvim_set_option("title", true)
-  vim.api.nvim_set_option("pumheight", 10)
+  vim.api.nvim_set_option("pumheight", math.ceil(vim.api.nvim_get_option("lines") * 0.25))
   vim.api.nvim_set_option("pumblend", 10)
   vim.api.nvim_set_option("tabstop", 4)
   vim.api.nvim_set_option("softtabstop", 4)
@@ -37,13 +44,14 @@ function setup.general()
   vim.api.nvim_win_set_option(0, "signcolumn", "yes:2")
   vim.api.nvim_win_set_option(0, "winblend", 10)
 
-  setup.formatoptions()
-  setup.terminal()
-  setup.shell()
-  setup.indents()
+  s.setup_formatoptions()
+  s.setup_terminal()
+  s.setup_shell()
+  s.setup_indents()
 end
 
-function setup.formatoptions()
+--- Overwrite `'formatoptions'` on all filetype.
+function s.setup_formatoptions()
   vim.api.nvim_set_option("formatoptions", "cql")
   vim.api.nvim_create_autocmd("FileType", {
     callback = function()
@@ -52,7 +60,8 @@ function setup.formatoptions()
   })
 end
 
-function setup.terminal()
+--- Configure terminal-mode settings.
+function s.setup_terminal()
   vim.api.nvim_create_autocmd("TermOpen", {
     callback = function()
       vim.cmd("startinsert")
@@ -62,39 +71,49 @@ function setup.terminal()
   vim.keymap.set("t", "<C-[>", "<C-\\><C-n>")
 end
 
-function setup.shell()
-  if util.is_windows() then
+--- Configure my favorite shell.
+function s.setup_shell()
+  if s.on_windows() then
     local pwsh = "pwsh"
     local powershell = "powershell"
-    if util.executable(pwsh) then
+    if s.executable(pwsh) then
       vim.api.nvim_set_option("shell", pwsh)
-    elseif util.executable(powershell) then
+    elseif s.executable(powershell) then
       vim.api.nvim_set_option("shell", powershell)
     end
-  elseif util.is_linux() then
+  elseif s.on_linux() then
     local bash = "bash"
-    if util.executable(bash) then
+    if s.executable(bash) then
       vim.api.nvim_set_option("shell", bash)
     end
   end
 end
 
-function setup.indents()
+--- Configure indent size for each filetype.
+function s.setup_indents()
   local indents = {
     {
-      pattern = { "json", "yaml" },
-      command = "setlocal tabstop=2 softtabstop=2 shiftwidth=2",
+      ft = { "json", "yaml", "c" },
+      size = 2,
     },
   }
+
   for _, i in pairs(indents) do
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = i.pattern,
-      command = i.command,
-    })
+    for _, ft in pairs(i.ft) do
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = ft,
+        callback = function()
+          vim.api.nvim_buf_set_option(0, "tabstop", i.size)
+          vim.api.nvim_buf_set_option(0, "softtabstop", i.size)
+          vim.api.nvim_buf_set_option(0, "shiftwidth", i.size)
+        end
+      })
+    end
   end
 end
 
-function setup.lsp_ui()
+--- Configure keymappings and commands for LSP.
+function s.setup_lsp_ui()
   vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
       local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -121,16 +140,17 @@ function setup.lsp_ui()
   })
 end
 
-function setup.commands()
-  -- vim.api.nvim_create_user_command("Terminal", "belowright new | terminal <args>", { nargs = "*" })
+--- Define shortcuts and my own functions.
+function s.setup_commands()
   vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
-  vim.api.nvim_create_user_command("Terminal", util.open_floating_terminal, { nargs = 0 })
+  vim.api.nvim_create_user_command("Terminal", s.open_floating_terminal, { nargs = 0 })
   vim.api.nvim_create_user_command("LightMode", "set background=light", { nargs = 0 })
   vim.api.nvim_create_user_command("DarkMode", "set background=dark", { nargs = 0 })
   vim.api.nvim_create_user_command("CdHere", "cd %:h", { nargs = 0 })
 end
 
-function setup.plugins()
+--- Load plugins using lazy.nvim.
+function s.setup_plugins()
   local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
   if not vim.loop.fs_stat(lazypath) then
     vim.fn.system({
@@ -148,7 +168,6 @@ function setup.plugins()
     {
       "rbtnn/vim-ambiwidth",
     },
-
     {
       "udalov/kotlin-vim",
       ft = "kotlin",
@@ -157,11 +176,10 @@ function setup.plugins()
       "MTDL9/vim-log-highlighting",
       ft = "log",
     },
-
     {
       "lambdalisue/fern.vim",
       event = "UIEnter",
-      config = setup.plugin_fern,
+      config = s.setup_fern,
     },
     {
       "lambdalisue/fern-git-status.vim",
@@ -170,22 +188,22 @@ function setup.plugins()
     {
       "sainnhe/everforest",
       event = "UIEnter",
-      config = setup.plugin_everforest,
+      config = s.setup_everforest,
     },
     {
       "windwp/nvim-autopairs",
       event = "UIEnter",
-      config = setup.plugin_nvim_autopairs,
+      config = s.setup_nvim_autopairs,
     },
     {
       "mfussenegger/nvim-jdtls",
       event = "UIEnter",
-      config = setup.plugin_nvim_jdtls,
+      config = s.setup_nvim_jdtls,
     },
     {
       "tsuoihito/vim-bufferlist",
       event = "UIEnter",
-      config = setup.plugin_vim_bufferlist,
+      config = s.setup_vim_bufferlist,
     },
     {
       "neovim/nvim-lspconfig",
@@ -194,12 +212,12 @@ function setup.plugins()
     {
       "williamboman/mason.nvim",
       event = "UIEnter",
-      config = setup.plugin_mason,
+      config = true,
     },
     {
       "williamboman/mason-lspconfig.nvim",
       event = "UIEnter",
-      config = setup.plugin_mason_lspconfig,
+      config = s.setup_mason_lspconfig,
     },
     {
       "tpope/vim-fugitive",
@@ -228,12 +246,12 @@ function setup.plugins()
     {
       "nvim-telescope/telescope.nvim",
       event = "UIEnter",
-      config = setup.plugin_telescope,
+      config = s.setup_telescope,
     },
     {
       "stevearc/aerial.nvim",
       event = "UIEnter",
-      config = setup.plugin_aerial,
+      config = s.setup_aerial,
     },
     {
       "mfussenegger/nvim-dap",
@@ -242,13 +260,12 @@ function setup.plugins()
     {
       "monkoose/matchparen.nvim",
       event = "UIEnter",
-      config = setup.plugin_matchparen,
+      config = true,
     },
     {
       "tsuoihito/badapple.nvim",
       event = "UIEnter",
     },
-
     {
       "andweeb/presence.nvim",
       lazy = true,
@@ -256,7 +273,7 @@ function setup.plugins()
     {
       "hrsh7th/nvim-cmp",
       event = "UIEnter",
-      config = setup.plugin_nvim_cmp,
+      config = s.setup_nvim_cmp,
     },
     {
       "hrsh7th/cmp-nvim-lsp",
@@ -273,6 +290,37 @@ function setup.plugins()
     {
       "hrsh7th/cmp-path",
       event = "UIEnter",
+    },
+    {
+      "hrsh7th/cmp-calc",
+      event = "UIEnter",
+    },
+    {
+      "hrsh7th/cmp-emoji",
+      event = "UIEnter",
+    },
+    {
+      "hrsh7th/cmp-cmdline",
+      event = "UIEnter",
+    },
+    {
+      "machakann/vim-sandwich",
+      event = "UIEnter",
+    },
+    {
+      "monaqa/dial.nvim",
+      event = "UIEnter",
+      config = s.setup_dial_nvim,
+    },
+    {
+      "gbprod/substitute.nvim",
+      event = "UIEnter",
+      config = s.setup_substitute_nvim,
+    },
+    {
+      "dstein64/nvim-scrollview",
+      event = "UIEnter",
+      config = true,
     },
   }
 
@@ -318,7 +366,7 @@ function setup.plugins()
   require("lazy").setup(plugins, config)
 end
 
-function setup.plugin_fern()
+function s.setup_fern()
   vim.keymap.set("n", "<F2>", "<cmd>Fern . -drawer -toggle -stay<CR>", { silent = true })
   vim.api.nvim_set_var("fern#default_hidden", true)
   vim.api.nvim_create_autocmd("FileType", {
@@ -331,7 +379,7 @@ function setup.plugin_fern()
   })
 end
 
-function setup.plugin_nvim_autopairs()
+function s.setup_nvim_autopairs()
   local autopairs = require("nvim-autopairs")
   local Rule = require("nvim-autopairs.rule")
   local cond = require("nvim-autopairs.conds")
@@ -345,78 +393,83 @@ function setup.plugin_nvim_autopairs()
   local brackets = { { "(", ")" }, { "[", "]" }, { "{", "}" } }
   autopairs.add_rules({
     Rule(" ", " ")
-      :with_pair(function(opts)
-        local pair = opts.line:sub(opts.col - 1, opts.col)
-        return vim.tbl_contains({
-          brackets[1][1] .. brackets[1][2],
-          brackets[2][1] .. brackets[2][2],
-          brackets[3][1] .. brackets[3][2],
-        }, pair)
-      end)
+        :with_pair(function(opts)
+          local pair = opts.line:sub(opts.col - 1, opts.col)
+          return vim.tbl_contains({
+            brackets[1][1] .. brackets[1][2],
+            brackets[2][1] .. brackets[2][2],
+            brackets[3][1] .. brackets[3][2],
+          }, pair)
+        end)
   })
   for _, bracket in pairs(brackets) do
     autopairs.add_rules({
       Rule(bracket[1] .. " ", " " .. bracket[2])
-        :with_pair(function() return false end)
-        :with_move(function(opts)
-          return opts.prev_char:match(".%" .. bracket[2]) ~= nil
-        end)
-        :use_key(bracket[2])
+          :with_pair(function() return false end)
+          :with_move(function(opts)
+            return opts.prev_char:match(".%" .. bracket[2]) ~= nil
+          end)
+          :use_key(bracket[2])
     })
   end
 
   -- auto addspace on =
   autopairs.add_rules({
     Rule("=", "", { "-sh", "-bash", "-zsh" })
-      :with_pair(cond.not_inside_quote())
-      :with_pair(function(opts)
-        local last_char = opts.line:sub(opts.col - 1, opts.col - 1)
-        if last_char:match("[%w%=%s]") then
-          return true
-        end
-        return false
-      end)
-      :replace_endpair(function(opts)
-        local prev_2char = opts.line:sub(opts.col - 2, opts.col - 1)
-        local next_char = opts.line:sub(opts.col, opts.col)
-        next_char = next_char == " " and "" or " "
-        if prev_2char:match("%w$") then
-          return "<bs> =" .. next_char
-        end
-        if prev_2char:match("%=$") then
-          return next_char
-        end
-        if prev_2char:match("=") then
-          return "<bs><bs>=" .. next_char
-        end
-        return ""
-      end)
-      :set_end_pair_length(0)
-      :with_move(cond.none())
-      :with_del(cond.none())
+        :with_pair(cond.not_inside_quote())
+        :with_pair(function(opts)
+          local last_char = opts.line:sub(opts.col - 1, opts.col - 1)
+          if last_char:match("[%w%=%s]") then
+            return true
+          end
+          return false
+        end)
+        :replace_endpair(function(opts)
+          local prev_2char = opts.line:sub(opts.col - 2, opts.col - 1)
+          local next_char = opts.line:sub(opts.col, opts.col)
+          next_char = next_char == " " and "" or " "
+          if prev_2char:match("%w$") then
+            return "<bs> =" .. next_char
+          end
+          if prev_2char:match("%=$") then
+            return next_char
+          end
+          if prev_2char:match("=") then
+            return "<bs><bs>=" .. next_char
+          end
+          return ""
+        end)
+        :set_end_pair_length(0)
+        :with_move(cond.none())
+        :with_del(cond.none())
   })
 end
 
-function setup.plugin_nvim_jdtls()
+function s.setup_nvim_jdtls()
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "java",
-    callback = setup.jdtls,
+    callback = s.start_jdtls,
   })
 
-  -- for lazy loading
-  util.reload_filetype()
+  s.reload_filetype()
 end
 
-function setup.jdtls()
-  if util.is_windows() then
-    setup._jdtls("~/AppData/Local/eclipse.jdt.ls", "config_win")
+function s.start_jdtls()
+  if s.on_windows() then
+    s.start_jdtls_windows()
   end
 end
 
-function setup._jdtls(jdtls_home, config_name)
-  local jar = vim.fn.glob(jdtls_home .. "/plugins/org.eclipse.equinox.launcher_*.jar")
-  local configuration = vim.fn.glob(jdtls_home .. "/" .. config_name)
-  local data = vim.fn.glob(jdtls_home .. "/data/" .. vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t"))
+function s.start_jdtls_windows()
+  local jdtls_home = os.getenv("LOCALAPPDATA") .. "\\eclipse.jdt.ls"
+  local jar = vim.fn.glob(jdtls_home .. "\\plugins\\org.eclipse.equinox.launcher_*.jar")
+  local configuration = jdtls_home .. "\\config_win"
+  local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+  local data = jdtls_home .. "\\data\\" .. project_name
+  s.start_jdtls_common(jar, configuration, data)
+end
+
+function s.start_jdtls_common(jar, configuration, data)
   local config = {
     cmd = {
       "java",
@@ -454,39 +507,35 @@ function setup._jdtls(jdtls_home, config_name)
   require("jdtls").start_or_attach(config)
 end
 
-function setup.plugin_everforest()
+function s.setup_everforest()
   vim.cmd("colorscheme everforest")
+  vim.api.nvim_set_option("background", "light")
 end
 
-function setup.plugin_vim_bufferlist()
+function s.setup_vim_bufferlist()
   vim.keymap.set("n", "<Space>", "<cmd>call BufferList()<CR>")
 end
 
-function setup.plugin_mason()
-  require("mason").setup()
-end
-
-function setup.plugin_mason_lspconfig()
+function s.setup_mason_lspconfig()
   local mason_lspconfig = require("mason-lspconfig")
 
   mason_lspconfig.setup()
   mason_lspconfig.setup_handlers({
     function(server_name)
       local ignored_servers = { "jdtls" }
-      if not util.contains(ignored_servers, server_name) then
+      if not s.contains(ignored_servers, server_name) then
         require("lspconfig")[server_name].setup({
           capabilities = require("cmp_nvim_lsp").default_capabilities()
         })
       end
     end,
-    ["lua_ls"] = setup.lua_ls,
+    ["lua_ls"] = s.setup_lua_ls,
   })
 
-  -- for lazy loading
-  util.reload_filetype()
+  s.reload_filetype()
 end
 
-function setup.lua_ls()
+function s.setup_lua_ls()
   require("lspconfig")["lua_ls"].setup({
     settings = {
       Lua = {
@@ -498,7 +547,7 @@ function setup.lua_ls()
   })
 end
 
-function setup.plugin_telescope()
+function s.setup_telescope()
   require("telescope").setup({
     defaults = {
       winblend = 10,
@@ -513,22 +562,18 @@ function setup.plugin_telescope()
   vim.keymap.set("n", "<leader>tq", builtin.quickfix)
 end
 
-function setup.plugin_aerial()
+function s.setup_aerial()
   require("aerial").setup()
   vim.keymap.set("n", "<F3>", "<cmd>AerialToggle!<CR>")
 end
 
-function setup.plugin_matchparen()
-  require("matchparen").setup()
-end
-
-function setup.plugin_nvim_cmp()
+function s.setup_nvim_cmp()
   local cmp = require("cmp")
   cmp.setup({
     sources = {
       { name = "nvim_lsp" },
-      { name = "buffer" },
       { name = "path" },
+      { name = "calc" },
     },
     snippet = {
       expand = function(args)
@@ -536,17 +581,42 @@ function setup.plugin_nvim_cmp()
       end,
     },
     mapping = cmp.mapping.preset.insert({
-      [ "<C-p>" ] = cmp.mapping.select_prev_item(),
-      [ "<C-n>" ] = cmp.mapping.select_next_item(),
-      [ "<C-l>" ] = cmp.mapping.complete(),
-      [ "<C-e>" ] = cmp.mapping.abort(),
-      [ "<C-y>" ] = cmp.mapping.confirm({ select = true }),
-      [ "<C-b>" ] = cmp.mapping.scroll_docs(-4),
-      [ "<C-f>" ] = cmp.mapping.scroll_docs(4),
+      ["<C-p>"] = cmp.mapping.select_prev_item(),
+      ["<C-n>"] = cmp.mapping.select_next_item(),
+      ["<Tab>"] = cmp.mapping.select_next_item(),
+      ["<C-l>"] = cmp.mapping.complete(),
+      ["<C-e>"] = cmp.mapping.abort(),
+      ["<C-y>"] = cmp.mapping.confirm({ select = true }),
+      ["<CR>"] = cmp.mapping.confirm({ select = true }),
+      ["<C-b>"] = cmp.mapping.scroll_docs(-1),
+      ["<C-f>"] = cmp.mapping.scroll_docs(1),
     }),
+    window = {
+      documentation = {
+        max_width = vim.api.nvim_get_option("columns") * 0.25,
+        max_height = vim.api.nvim_get_option("lines") * 0.25,
+      },
+    },
+    enabled = function()
+      local context = require("cmp.config.context")
+      if vim.api.nvim_get_mode().mode == "c" then
+        return true
+      else
+        return not context.in_treesitter_capture("comment")
+            and not context.in_syntax_group("Comment")
+      end
+    end,
   })
 
-  -- If you want insert `(` after select function or method item
+  cmp.setup.filetype("markdown", {
+    sources = {
+      { name = "nvim_lsp" },
+      { name = "path" },
+      { name = "calc" },
+      { name = "emoji" },
+    },
+  })
+
   local cmp_autopairs = require("nvim-autopairs.completion.cmp")
   cmp.event:on(
     "confirm_done",
@@ -554,7 +624,44 @@ function setup.plugin_nvim_cmp()
   )
 end
 
-function util.contains(list, x)
+function s.setup_dial_nvim()
+  local augend = require("dial.augend")
+  require("dial.config").augends:register_group {
+    default = {
+      augend.integer.alias.decimal,
+      augend.integer.alias.hex,
+      augend.date.alias["%Y/%m/%d"],
+      augend.constant.alias.bool,
+      augend.constant.new { elements = { "True", "False" } },
+      augend.constant.new { elements = { "private", "public" } },
+    },
+  }
+
+  vim.keymap.set("n", "<C-a>", require("dial.map").inc_normal())
+  vim.keymap.set("n", "<C-x>", require("dial.map").dec_normal())
+  vim.keymap.set("n", "g<C-a>", require("dial.map").inc_gnormal())
+  vim.keymap.set("n", "g<C-x>", require("dial.map").dec_gnormal())
+  vim.keymap.set("v", "<C-a>", require("dial.map").inc_visual())
+  vim.keymap.set("v", "<C-x>", require("dial.map").dec_visual())
+  vim.keymap.set("v", "g<C-a>", require("dial.map").inc_gvisual())
+  vim.keymap.set("v", "g<C-x>", require("dial.map").dec_gvisual())
+
+  s.reload_filetype()
+end
+
+function s.setup_substitute_nvim()
+  require("substitute").setup({})
+  vim.keymap.set("n", "s", require('substitute').operator)
+  vim.keymap.set("n", "ss", require('substitute').line)
+  vim.keymap.set("n", "S", require('substitute').eol)
+  vim.keymap.set("x", "s", require('substitute').visual)
+end
+
+--- Return true if the list contains the element, otherwise false.
+--- @param list table
+--- @param x any
+--- @return boolean
+function s.contains(list, x)
   for _, v in pairs(list) do
     if v == x then
       return true
@@ -563,32 +670,48 @@ function util.contains(list, x)
   return false
 end
 
-function util.is_windows()
+--- Return true if running on Windows system, otherwise false.
+--- @return boolean
+function s.on_windows()
   return vim.loop.os_uname().sysname == "Windows_NT"
 end
 
-function util.is_linux()
+--- Return true if running on Linux system, otherwise false.
+--- @return boolean
+function s.on_linux()
   return vim.loop.os_uname().sysname == "Linux"
 end
 
-function util.executable(name)
+--- Work same as `executable()` in Vim Script.
+--- @return boolean
+function s.executable(name)
   return vim.fn.executable(name) == 1
 end
 
-function util.reload_filetype()
+--- Reconfigure the filetype of current buffer, for detecting filetype after loading a buffer.
+function s.reload_filetype()
   vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
 end
 
-function util.get_term_bufnr()
-  for _, buf in pairs(vim.fn.getbufinfo()) do
-    if buf.name:find("^term://") ~= nil then
-      return buf.bufnr
-    end
+--- Open terminal in a floating window.
+function s.open_floating_terminal()
+  local term_bufnr = s.get_term_bufnr()
+  if term_bufnr ~= nil then
+    s.open_floating_window(term_bufnr)
+    vim.cmd("startinsert")
+  else
+    local new_term_bufnr = vim.api.nvim_create_buf(false, false)
+    --- @type integer
+    vimrc_data.float_term_bufnr = new_term_bufnr
+    s.open_floating_window(new_term_bufnr)
+    vim.cmd("terminal")
+    vim.keymap.set("n", "<Esc>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
   end
-  return nil
 end
 
-function util.open_floating_window(bufnr)
+--- Open a floating window.
+--- @param bufnr integer
+function s.open_floating_window(bufnr)
   local columns = vim.api.nvim_get_option("columns")
   local lines = vim.api.nvim_get_option("lines")
   local width = math.ceil(columns * 0.7)
@@ -605,18 +728,17 @@ function util.open_floating_window(bufnr)
   vim.api.nvim_open_win(bufnr, 0, config)
 end
 
-function util.open_floating_terminal()
-  local term_bufnr = util.get_term_bufnr()
-  if term_bufnr ~= nil then
-    util.open_floating_window(term_bufnr)
-    vim.cmd("startinsert")
-  else
-    local new_term_bufnr = vim.api.nvim_create_buf(false, false)
-    util.open_floating_window(new_term_bufnr)
-    vim.cmd("terminal")
+--- Return the buffer number for the floating terminal, or nil if no terminal exists.
+--- @return integer|nil
+function s.get_term_bufnr()
+  for _, buf in pairs(vim.fn.getbufinfo()) do
+    if buf.bufnr == vimrc_data.float_term_bufnr then
+      return buf.bufnr
+    end
   end
+  return nil
 end
 
-setup.main()
+s.main()
 
 -- vim: ts=2 sts=2 sw=2
