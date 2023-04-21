@@ -14,7 +14,7 @@ local vimrc_data = {}
 function s.main()
   s.setup_general()
   s.setup_lsp_ui()
-  s.setup_commands()
+  s.setup_utils()
   s.setup_plugins()
 end
 
@@ -106,7 +106,7 @@ function s.setup_indents()
           vim.api.nvim_buf_set_option(0, "tabstop", i.size)
           vim.api.nvim_buf_set_option(0, "softtabstop", i.size)
           vim.api.nvim_buf_set_option(0, "shiftwidth", i.size)
-        end
+        end,
       })
     end
   end
@@ -141,7 +141,7 @@ function s.setup_lsp_ui()
 end
 
 --- Define shortcuts and my own functions.
-function s.setup_commands()
+function s.setup_utils()
   vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
   vim.api.nvim_create_user_command("Terminal", s.open_floating_terminal, { nargs = 0 })
   vim.api.nvim_create_user_command("LightMode", "set background=light", { nargs = 0 })
@@ -645,8 +645,6 @@ function s.setup_dial_nvim()
   vim.keymap.set("v", "<C-x>", require("dial.map").dec_visual())
   vim.keymap.set("v", "g<C-a>", require("dial.map").inc_gvisual())
   vim.keymap.set("v", "g<C-x>", require("dial.map").dec_gvisual())
-
-  s.reload_filetype()
 end
 
 function s.setup_substitute_nvim()
@@ -655,6 +653,53 @@ function s.setup_substitute_nvim()
   vim.keymap.set("n", "ss", require('substitute').line)
   vim.keymap.set("n", "S", require('substitute').eol)
   vim.keymap.set("x", "s", require('substitute').visual)
+end
+
+--- Open terminal in a floating window.
+function s.open_floating_terminal()
+  local term_bufnr = s.get_term_bufnr()
+  if term_bufnr ~= nil then
+    s.open_floating_window(term_bufnr)
+    vim.cmd("startinsert")
+  else
+    local new_term_bufnr = vim.api.nvim_create_buf(false, false)
+    --- @type integer
+    vimrc_data.float_term_bufnr = new_term_bufnr
+    s.open_floating_window(new_term_bufnr)
+    vim.cmd("terminal")
+    vim.keymap.set("n", "<Esc>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
+    vim.keymap.set(s.get_all_modes(), "<F4>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
+  end
+end
+
+--- Return the buffer number of the floating terminal, or nil if no terminal exists.
+--- @return integer|nil
+function s.get_term_bufnr()
+  for _, buf in pairs(vim.fn.getbufinfo()) do
+    if buf.bufnr == vimrc_data.float_term_bufnr then
+      return buf.bufnr
+    end
+  end
+  return nil
+end
+
+--- Open a floating window.
+--- @param bufnr integer
+function s.open_floating_window(bufnr)
+  local columns = vim.api.nvim_get_option("columns")
+  local lines = vim.api.nvim_get_option("lines")
+  local width = math.ceil(columns * 0.7)
+  local height = math.ceil(lines * 0.7)
+  local config = {
+    relative = "editor",
+    width = width,
+    height = height,
+    col = (columns - width) * 0.5,
+    row = (lines - height) * 0.5,
+    anchor = "NW",
+    style = "minimal"
+  }
+  vim.api.nvim_open_win(bufnr, 0, config)
 end
 
 --- Return true if the list contains the element, otherwise false.
@@ -693,50 +738,10 @@ function s.reload_filetype()
   vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
 end
 
---- Open terminal in a floating window.
-function s.open_floating_terminal()
-  local term_bufnr = s.get_term_bufnr()
-  if term_bufnr ~= nil then
-    s.open_floating_window(term_bufnr)
-    vim.cmd("startinsert")
-  else
-    local new_term_bufnr = vim.api.nvim_create_buf(false, false)
-    --- @type integer
-    vimrc_data.float_term_bufnr = new_term_bufnr
-    s.open_floating_window(new_term_bufnr)
-    vim.cmd("terminal")
-    vim.keymap.set("n", "<Esc>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
-  end
-end
-
---- Open a floating window.
---- @param bufnr integer
-function s.open_floating_window(bufnr)
-  local columns = vim.api.nvim_get_option("columns")
-  local lines = vim.api.nvim_get_option("lines")
-  local width = math.ceil(columns * 0.7)
-  local height = math.ceil(lines * 0.7)
-  local config = {
-    relative = "editor",
-    width = width,
-    height = height,
-    col = (columns - width) * 0.5,
-    row = (lines - height) * 0.5,
-    anchor = "NW",
-    style = "minimal"
-  }
-  vim.api.nvim_open_win(bufnr, 0, config)
-end
-
---- Return the buffer number for the floating terminal, or nil if no terminal exists.
---- @return integer|nil
-function s.get_term_bufnr()
-  for _, buf in pairs(vim.fn.getbufinfo()) do
-    if buf.bufnr == vimrc_data.float_term_bufnr then
-      return buf.bufnr
-    end
-  end
-  return nil
+--- Return the table of all short-names of modes, for uses of mapping keys in all modes.
+--- @return table
+function s.get_all_modes()
+  return { "n", "v", "x", "s", "o", "i", "c", "t" }
 end
 
 s.main()
