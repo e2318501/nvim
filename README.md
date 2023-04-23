@@ -1,4 +1,4 @@
-# Neovim Configuration
+# My Neovim Configuration
 
 ![total lines](https://img.shields.io/tokei/lines/github/tsuoihito/nvim)
 ![files](https://img.shields.io/github/directory-file-count/tsuoihito/nvim)
@@ -8,4 +8,4 @@
 ![last commit](https://img.shields.io/github/last-commit/tsuoihito/nvim)
 ![license](https://img.shields.io/github/license/tsuoihito/nvim)
 
-![screenshot](https://cdn.discordapp.com/attachments/1066964398658306170/1099022539365289994/image.png)
+![screenshot](https://dl.dropboxusercontent.com/s/29drz8mmu5gxstf/my_neovim_configuration.png)

@@ -481,7 +481,7 @@ end
 
 function s.setup_everforest()
   vim.cmd("colorscheme everforest")
-  vim.api.nvim_set_option("background", "light")
+  vim.api.nvim_set_option("background", "dark")
 end
 
 function s.setup_vim_bufferlist()
