@@ -126,7 +126,7 @@ function s.setup_lsp_ui()
       vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { buffer = args.buf })
       vim.keymap.set("n", "gc", vim.lsp.buf.code_action, { buffer = args.buf })
       vim.keymap.set("n", "gl", vim.diagnostic.setqflist, { buffer = args.buf })
-      vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = args.buf })
+      vim.keymap.set("n", "<C-k>", vim.diagnostic.open_float, { buffer = args.buf })
       vim.api.nvim_buf_create_user_command(
         args.buf,
         "Rename",
@@ -137,6 +137,13 @@ function s.setup_lsp_ui()
       )
       vim.api.nvim_buf_set_option(args.buf, "omnifunc", "v:lua.vim.lsp.omnifunc")
     end,
+  })
+
+  vim.diagnostic.config({
+    virtual_text = {
+      prefix = "*",
+    },
+    signs = false,
   })
 end
 
@@ -165,9 +172,9 @@ function s.setup_plugins()
   vim.api.nvim_set_option("rtp", lazypath .. "," .. vim.api.nvim_get_option("rtp"))
 
   local plugins = {
-    {
-      "rbtnn/vim-ambiwidth",
-    },
+    -- {
+    --   "rbtnn/vim-ambiwidth",
+    -- },
     {
       "udalov/kotlin-vim",
       ft = "kotlin",
@@ -184,6 +191,10 @@ function s.setup_plugins()
     {
       "lambdalisue/fern-git-status.vim",
       event = "UIEnter",
+      config = s.setup_fern_git_status,
+      dependencies = {
+        "lambdalisue/fern.vim",
+      },
     },
     {
       "sainnhe/everforest",
@@ -280,11 +291,11 @@ function s.setup_plugins()
       event = "UIEnter",
     },
     {
-      "hrsh7th/vim-vsnip",
+      "hrsh7th/cmp-nvim-lsp-signature-help",
       event = "UIEnter",
     },
     {
-      "hrsh7th/cmp-buffer",
+      "hrsh7th/vim-vsnip",
       event = "UIEnter",
     },
     {
@@ -318,12 +329,24 @@ function s.setup_plugins()
       config = s.setup_substitute_nvim,
     },
     {
-      "dstein64/nvim-scrollview",
+      "iamcco/markdown-preview.nvim",
+      event = "UIEnter",
+    },
+    {
+      "petertriho/nvim-scrollbar",
+      event = "UIEnter",
+      config = s.setup_nvim_scrollbar,
+      dependencies = {
+        "sainnhe/everforest",
+      },
+    },
+    {
+      "lewis6991/gitsigns.nvim",
       event = "UIEnter",
       config = true,
     },
     {
-      "iamcco/markdown-preview.nvim",
+      "lukas-reineke/indent-blankline.nvim",
       event = "UIEnter",
     },
   }
@@ -381,6 +404,10 @@ function s.setup_fern()
       vim.api.nvim_win_set_option(0, "number", false)
     end,
   })
+end
+
+function s.setup_fern_git_status()
+  vim.fn["fern_git_status#init"]()
 end
 
 function s.setup_nvim_autopairs()
@@ -544,6 +571,7 @@ function s.setup_nvim_cmp()
   cmp.setup({
     sources = {
       { name = "nvim_lsp" },
+      { name = "nvim_lsp_signature_help" },
       { name = "path" },
       { name = "calc" },
     },
@@ -583,6 +611,7 @@ function s.setup_nvim_cmp()
   cmp.setup.filetype("markdown", {
     sources = {
       { name = "nvim_lsp" },
+      { name = "nvim_lsp_signature_help" },
       { name = "path" },
       { name = "calc" },
       { name = "emoji" },
@@ -627,6 +656,25 @@ function s.setup_substitute_nvim()
   vim.keymap.set("x", "s", require('substitute').visual)
 end
 
+function s.setup_nvim_scrollbar()
+  require("scrollbar").setup({
+    marks = {
+      Error = {
+        highlight = "DiagnosticSignError",
+      },
+      Warn = {
+        highlight = "DiagnosticSignWarn",
+      },
+      Info = {
+        highlight = "DiagnosticSignInfo",
+      },
+      Hint = {
+        highlight = "DiagnosticSignHint",
+      },
+    },
+  })
+end
+
 --- Open terminal in a floating window.
 function s.open_floating_terminal()
   local term_bufnr = s.get_term_bufnr()
@@ -640,7 +688,7 @@ function s.open_floating_terminal()
     s.open_floating_window(new_term_bufnr)
     vim.cmd("terminal")
     vim.keymap.set("n", "<Esc>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
-    vim.keymap.set(s.get_all_modes(), "<F4>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
+    vim.keymap.set({ "n", "v", "x", "s", "o", "i", "t" }, "<F4>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
   end
 end
 
@@ -708,12 +756,6 @@ end
 --- Reconfigure the filetype of current buffer, for detecting filetype after loading a buffer.
 function s.reload_filetype()
   vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
-end
-
---- Return the table of all short-names of modes, for uses of mapping keys in all modes.
---- @return table
-function s.get_all_modes()
-  return { "n", "v", "x", "s", "o", "i", "c", "t" }
 end
 
 s.main()
