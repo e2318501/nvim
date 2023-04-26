@@ -1,4 +1,4 @@
---- All of my configuration for Neovim
+--- All of my Neovim configuration
 --- @author nutchi <nutchi.net>
 
 
@@ -47,7 +47,7 @@ function s.setup_general()
   s.setup_formatoptions()
   s.setup_terminal()
   s.setup_shell()
-  s.setup_indents()
+  s.setup_indent()
 end
 
 --- Overwrite `'formatoptions'` on all filetype.
@@ -89,11 +89,11 @@ function s.setup_shell()
   end
 end
 
---- Configure indent size for each filetype.
-function s.setup_indents()
+--- Configure indent.
+function s.setup_indent()
   local indents = {
     {
-      ft = { "json", "yaml", "c" },
+      ft = { "json", "yaml", "c", "sshconfig" },
       size = 2,
     },
   }
@@ -110,6 +110,10 @@ function s.setup_indents()
       })
     end
   end
+
+  vim.api.nvim_create_autocmd("FileType", {
+    command = "setlocal indentkeys-=0#",
+  })
 end
 
 --- Configure keymappings and commands for LSP.
@@ -126,15 +130,9 @@ function s.setup_lsp_ui()
       vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { buffer = args.buf })
       vim.keymap.set("n", "gc", vim.lsp.buf.code_action, { buffer = args.buf })
       vim.keymap.set("n", "gl", vim.diagnostic.setqflist, { buffer = args.buf })
+      vim.keymap.set("n", "gR", vim.lsp.buf.rename, { buffer = args.buf })
       vim.keymap.set("n", "<C-k>", vim.diagnostic.open_float, { buffer = args.buf })
-      vim.api.nvim_buf_create_user_command(
-        args.buf,
-        "Rename",
-        function(opts)
-          vim.lsp.buf.rename(opts.args)
-        end,
-        { nargs = 1 }
-      )
+
       vim.api.nvim_buf_set_option(args.buf, "omnifunc", "v:lua.vim.lsp.omnifunc")
     end,
   })
@@ -156,7 +154,7 @@ function s.setup_utils()
   vim.keymap.set("n", "<F4>", s.open_floating_terminal)
 end
 
---- Load plugins using lazy.nvim.
+--- Load plugins.
 function s.setup_plugins()
   local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
   if not vim.loop.fs_stat(lazypath) then
@@ -172,9 +170,6 @@ function s.setup_plugins()
   vim.api.nvim_set_option("rtp", lazypath .. "," .. vim.api.nvim_get_option("rtp"))
 
   local plugins = {
-    -- {
-    --   "rbtnn/vim-ambiwidth",
-    -- },
     {
       "udalov/kotlin-vim",
       ft = "kotlin",
@@ -450,7 +445,7 @@ function s.setup_nvim_jdtls()
     callback = s.start_jdtls,
   })
 
-  s.reload_filetype()
+  vim.cmd("doautocmd FileType")
 end
 
 function s.start_jdtls()
@@ -531,7 +526,7 @@ function s.setup_mason_lspconfig()
     ["lua_ls"] = s.setup_lua_ls,
   })
 
-  s.reload_filetype()
+  vim.cmd("doautocmd FileType")
 end
 
 function s.setup_lua_ls()
@@ -583,11 +578,9 @@ function s.setup_nvim_cmp()
     mapping = cmp.mapping.preset.insert({
       ["<C-p>"] = cmp.mapping.select_prev_item(),
       ["<C-n>"] = cmp.mapping.select_next_item(),
-      ["<Tab>"] = cmp.mapping.select_next_item(),
       ["<C-l>"] = cmp.mapping.complete(),
       ["<C-e>"] = cmp.mapping.abort(),
       ["<C-y>"] = cmp.mapping.confirm({ select = true }),
-      ["<CR>"] = cmp.mapping.confirm({ select = true }),
       ["<C-b>"] = cmp.mapping.scroll_docs(-1),
       ["<C-f>"] = cmp.mapping.scroll_docs(1),
     }),
@@ -636,16 +629,20 @@ function s.setup_dial_nvim()
       augend.constant.new { elements = { "True", "False" } },
       augend.constant.new { elements = { "private", "public" } },
     },
+    visual = {
+      augend.integer.alias.decimal,
+      augend.integer.alias.hex,
+    },
   }
 
   vim.keymap.set("n", "<C-a>", require("dial.map").inc_normal())
   vim.keymap.set("n", "<C-x>", require("dial.map").dec_normal())
   vim.keymap.set("n", "g<C-a>", require("dial.map").inc_gnormal())
   vim.keymap.set("n", "g<C-x>", require("dial.map").dec_gnormal())
-  vim.keymap.set("v", "<C-a>", require("dial.map").inc_visual())
-  vim.keymap.set("v", "<C-x>", require("dial.map").dec_visual())
-  vim.keymap.set("v", "g<C-a>", require("dial.map").inc_gvisual())
-  vim.keymap.set("v", "g<C-x>", require("dial.map").dec_gvisual())
+  vim.keymap.set("v", "<C-a>", require("dial.map").inc_visual("visual"))
+  vim.keymap.set("v", "<C-x>", require("dial.map").dec_visual("visual"))
+  vim.keymap.set("v", "g<C-a>", require("dial.map").inc_gvisual("visual"))
+  vim.keymap.set("v", "g<C-x>", require("dial.map").dec_gvisual("visual"))
 end
 
 function s.setup_substitute_nvim()
@@ -751,11 +748,6 @@ end
 --- @return boolean
 function s.executable(name)
   return vim.fn.executable(name) == 1
-end
-
---- Reconfigure the filetype of current buffer, for detecting filetype after loading a buffer.
-function s.reload_filetype()
-  vim.api.nvim_buf_set_option(0, "filetype", vim.api.nvim_buf_get_option(0, "filetype"))
 end
 
 s.main()
