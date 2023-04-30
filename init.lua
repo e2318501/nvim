@@ -503,6 +503,9 @@ function s.start_jdtls_common(jar, configuration, data)
 end
 
 function s.setup_everforest()
+  vim.api.nvim_set_var("everforest_background", "hard")
+  vim.api.nvim_set_var("everforest_disable_italic_comment", 1)
+  vim.api.nvim_set_var("everforest_diagnostic_virtual_text", "colored")
   vim.cmd("colorscheme everforest")
   vim.api.nvim_set_option("background", "dark")
 end
