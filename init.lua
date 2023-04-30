@@ -466,52 +466,53 @@ function s.start_jdtls()
 end
 
 function s.start_jdtls_windows()
-  local jdtls_home = os.getenv("LOCALAPPDATA") .. "\\eclipse.jdt.ls"
-  local jar = vim.fn.glob(jdtls_home .. "\\plugins\\org.eclipse.equinox.launcher_*.jar")
-  local configuration = jdtls_home .. "\\config_win"
+  local jar = vim.fn.expand("~/AppData/Local/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_*.jar")
+  local configuration = vim.fn.expand("~/AppData/Local/eclipse.jdt.ls/config_win")
   local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-  local data = jdtls_home .. "\\data\\" .. project_name
+  local data = vim.fn.expand("~/AppData/Local/eclipse.jdt.ls/data/" .. project_name)
   s.start_jdtls_common(jar, configuration, data)
 end
 
 function s.start_jdtls_common(jar, configuration, data)
-  local config = {
-    cmd = {
-      "java",
-      "-Declipse.application=org.eclipse.jdt.ls.core.id1",
-      "-Dosgi.bundles.defaultStartLevel=4",
-      "-Declipse.product=org.eclipse.jdt.ls.core.product",
-      "-Dlog.protocol=true",
-      "-Dlog.level=ALL",
-      "-Xmx1G",
-      "--add-modules=ALL-SYSTEM",
-      "--add-opens", "java.base/java.util=ALL-UNNAMED",
-      "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-      "-jar", jar,
-      "-configuration", configuration,
-      "-data", data
-    },
-    root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml" }),
-    settings = {
-      ["java.format.settings.url"] = "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
-      ["java.format.settings.profile"] = "GoogleStyle",
-      java = {
-        signatureHelp = { enabled = true },
-        sources = {
-          organizeImports = {
-            starThreshold = 9999,
-            staticStarThreshold = 9999,
+  if (s.file_exists(jar) and s.file_exists(configuration) and s.file_exists(data)) then
+    local config = {
+      cmd = {
+        "java",
+        "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+        "-Dosgi.bundles.defaultStartLevel=4",
+        "-Declipse.product=org.eclipse.jdt.ls.core.product",
+        "-Dlog.protocol=true",
+        "-Dlog.level=ALL",
+        "-Xmx1G",
+        "--add-modules=ALL-SYSTEM",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "-jar", jar,
+        "-configuration", configuration,
+        "-data", data
+      },
+      root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml" }),
+      settings = {
+        ["java.format.settings.url"] = "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
+        ["java.format.settings.profile"] = "GoogleStyle",
+        java = {
+          signatureHelp = { enabled = true },
+          sources = {
+            organizeImports = {
+              starThreshold = 9999,
+              staticStarThreshold = 9999,
+            },
           },
         },
       },
-    },
-    init_options = {
-      bundles = {},
-    },
-    capabilities = require("cmp_nvim_lsp").default_capabilities(),
-  }
+      init_options = {
+        bundles = {},
+      },
+      capabilities = require("cmp_nvim_lsp").default_capabilities(),
+    }
 
-  require("jdtls").start_or_attach(config)
+    require("jdtls").start_or_attach(config)
+  end
 end
 
 function s.setup_everforest()
@@ -771,6 +772,13 @@ end
 --- @return boolean
 function s.executable(name)
   return vim.fn.executable(name) == 1
+end
+
+--- Return true if file or directory exists, otherwise false.
+--- @param path string
+--- @return boolean
+function s.file_exists(path)
+  return vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1
 end
 
 s.main()
