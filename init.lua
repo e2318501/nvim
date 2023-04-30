@@ -125,6 +125,7 @@ function s.setup_lsp_ui()
         vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = args.buf })
       end
       vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = args.buf })
+      vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { buffer = args.buf })
       vim.keymap.set("n", "gr", vim.lsp.buf.references, { buffer = args.buf })
       vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = args.buf })
       vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { buffer = args.buf })
