@@ -483,6 +483,8 @@ function s.start_jdtls_common(jar, configuration, data)
     },
     root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml" }),
     settings = {
+      ["java.format.settings.url"] = "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
+      ["java.format.settings.profile"] = "GoogleStyle",
       java = {
         signatureHelp = { enabled = true },
         sources = {
