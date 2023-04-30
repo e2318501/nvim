@@ -227,6 +227,16 @@ function s.setup_plugins()
       config = s.setup_mason_lspconfig,
     },
     {
+      "jose-elias-alvarez/null-ls.nvim",
+      event = "UIEnter",
+      config = true,
+    },
+    {
+      "jay-babu/mason-null-ls.nvim",
+      event = "UIEnter",
+      config = s.setup_mason_null_ls,
+    },
+    {
       "tpope/vim-fugitive",
       event = "UIEnter",
     },
@@ -544,6 +554,13 @@ function s.setup_lua_ls()
         },
       },
     },
+  })
+end
+
+function s.setup_mason_null_ls()
+  require("mason-null-ls").setup({
+    automatic_setup = true,
+    handlers = {},
   })
 end
 
