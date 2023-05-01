@@ -1,16 +1,16 @@
---- All of my Neovim configuration
---- @author nutchi <nutchi.net>
+---All of my Neovim configuration
+---@author nutchi <nutchi.net>
 
 
---- A scope for local functions, like `s:` in Vim Script.
---- I want to order functions by abstraction level, so forward-definition is needed.
+---A scope for local functions, like `s:` in Vim Script.
+---I want to order functions by abstraction level, so forward-definition is needed.
 local s = {}
 
---- Data container for my own functions.
+---Data container for my own functions.
 local vimrc_data = {}
 
---- Setup all of the configuration.
---- It is called after all declarations of other functions.
+---Setup all of the configuration.
+---It is called after all declarations of other functions.
 function s.main()
   s.setup_general()
   s.setup_lsp_ui()
@@ -18,7 +18,7 @@ function s.main()
   s.setup_plugins()
 end
 
---- Configure general options.
+---Configure general options.
 function s.setup_general()
   vim.api.nvim_set_option("title", true)
   vim.api.nvim_set_option("pumheight", math.ceil(vim.api.nvim_get_option("lines") * 0.25))
@@ -50,7 +50,7 @@ function s.setup_general()
   s.setup_indent()
 end
 
---- Overwrite `'formatoptions'` on all filetype.
+---Overwrite `'formatoptions'` on all filetype.
 function s.setup_formatoptions()
   vim.api.nvim_set_option("formatoptions", "cql")
   vim.api.nvim_create_autocmd("FileType", {
@@ -60,7 +60,7 @@ function s.setup_formatoptions()
   })
 end
 
---- Configure terminal-mode settings.
+---Configure terminal-mode settings.
 function s.setup_terminal()
   vim.api.nvim_create_autocmd("TermOpen", {
     callback = function()
@@ -71,7 +71,7 @@ function s.setup_terminal()
   vim.keymap.set("t", "<C-[>", "<C-\\><C-n>")
 end
 
---- Configure my favorite shell.
+---Configure my favorite shell.
 function s.setup_shell()
   if s.on_windows() then
     local pwsh = "pwsh"
@@ -89,7 +89,7 @@ function s.setup_shell()
   end
 end
 
---- Configure indent.
+---Configure indent.
 function s.setup_indent()
   local indents = {
     {
@@ -116,7 +116,7 @@ function s.setup_indent()
   })
 end
 
---- Configure keymappings and commands for LSP.
+---Configure keymappings and commands for LSP.
 function s.setup_lsp_ui()
   vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
@@ -146,7 +146,7 @@ function s.setup_lsp_ui()
   })
 end
 
---- Define shortcuts and my own functions.
+---Define shortcuts and my own functions.
 function s.setup_utils()
   vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
   vim.api.nvim_create_user_command("LightMode", "set background=light", { nargs = 0 })
@@ -155,7 +155,7 @@ function s.setup_utils()
   vim.keymap.set("n", "<F4>", s.open_floating_terminal)
 end
 
---- Load plugins.
+---Load plugins.
 function s.setup_plugins()
   local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
   if not vim.loop.fs_stat(lazypath) then
@@ -466,18 +466,33 @@ function s.start_jdtls()
 end
 
 function s.start_jdtls_windows()
-  local jar = vim.fn.expand("~/AppData/Local/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_*.jar")
-  local configuration = vim.fn.expand("~/AppData/Local/eclipse.jdt.ls/config_win")
+  local java = vim.fn.expand("$ProgramFiles/Eclipse Adoptium/jdk-17.0.7.7-hotspot/bin/java")
+  local jar = vim.fn.expand("$LOCALAPPDATA/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_*.jar")
+  local configuration = vim.fn.expand("$LOCALAPPDATA/eclipse.jdt.ls/config_win")
   local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-  local data = vim.fn.expand("~/AppData/Local/eclipse.jdt.ls/data/" .. project_name)
-  s.start_jdtls_common(jar, configuration, data)
+  local data = vim.fn.expand("$LOCALAPPDATA/eclipse.jdt.ls/data/" .. project_name)
+  local runtimes = {
+    {
+      name = "JavaSE-1.8",
+      path = vim.fn.expand("$ProgramFiles/Eclipse Adoptium/jdk-8.0.372.7-hotspot/"),
+    },
+    {
+      name = "JavaSE-17",
+      path = vim.fn.expand("$ProgramFiles/Eclipse Adoptium/jdk-17.0.7.7-hotspot/"),
+    },
+  }
+  s.start_jdtls_common(java, jar, configuration, data, runtimes)
 end
 
-function s.start_jdtls_common(jar, configuration, data)
-  if (s.file_exists(jar) and s.file_exists(configuration) and s.file_exists(data)) then
+---@param java string
+---@param jar string
+---@param configuration string
+---@param runtimes table
+function s.start_jdtls_common(java, jar, configuration, data, runtimes)
+  if (s.executable(java) and s.file_exists(jar) and s.file_exists(configuration) and s.file_exists(data)) then
     local config = {
       cmd = {
-        "java",
+        java,
         "-Declipse.application=org.eclipse.jdt.ls.core.id1",
         "-Dosgi.bundles.defaultStartLevel=4",
         "-Declipse.product=org.eclipse.jdt.ls.core.product",
@@ -503,6 +518,9 @@ function s.start_jdtls_common(jar, configuration, data)
               staticStarThreshold = 9999,
             },
           },
+          configuration = {
+            runtimes = runtimes
+          }
         },
       },
       init_options = {
@@ -696,7 +714,7 @@ function s.setup_nvim_scrollbar()
   })
 end
 
---- Open terminal in a floating window.
+---Open terminal in a floating window.
 function s.open_floating_terminal()
   local term_bufnr = s.get_term_bufnr()
   if term_bufnr ~= nil then
@@ -713,8 +731,8 @@ function s.open_floating_terminal()
   end
 end
 
---- Return the buffer number of the floating terminal, or nil if no terminal exists.
---- @return integer|nil
+---Return the buffer number of the floating terminal, or nil if no terminal exists.
+---@return integer|nil
 function s.get_term_bufnr()
   for _, buf in pairs(vim.fn.getbufinfo()) do
     if buf.bufnr == vimrc_data.float_term_bufnr then
@@ -724,8 +742,8 @@ function s.get_term_bufnr()
   return nil
 end
 
---- Open a floating window.
---- @param bufnr integer
+---Open a floating window.
+---@param bufnr integer
 function s.open_floating_window(bufnr)
   local columns = vim.api.nvim_get_option("columns")
   local lines = vim.api.nvim_get_option("lines")
@@ -743,10 +761,10 @@ function s.open_floating_window(bufnr)
   vim.api.nvim_open_win(bufnr, 0, config)
 end
 
---- Return true if the list contains the element, otherwise false.
---- @param list table
---- @param x any
---- @return boolean
+---Return true if the list contains the element, otherwise false.
+---@param list table
+---@param x any
+---@return boolean
 function s.contains(list, x)
   for _, v in pairs(list) do
     if v == x then
@@ -756,27 +774,27 @@ function s.contains(list, x)
   return false
 end
 
---- Return true if running on Windows system, otherwise false.
---- @return boolean
+---Return true if running on Windows system, otherwise false.
+---@return boolean
 function s.on_windows()
   return vim.loop.os_uname().sysname == "Windows_NT"
 end
 
---- Return true if running on Linux system, otherwise false.
---- @return boolean
+---Return true if running on Linux system, otherwise false.
+---@return boolean
 function s.on_linux()
   return vim.loop.os_uname().sysname == "Linux"
 end
 
---- Work same as `executable()` in Vim Script.
---- @return boolean
+---Work same as `executable()` in Vim Script.
+---@return boolean
 function s.executable(name)
   return vim.fn.executable(name) == 1
 end
 
---- Return true if file or directory exists, otherwise false.
---- @param path string
---- @return boolean
+---Return true if file or directory exists, otherwise false.
+---@param path string
+---@return boolean
 function s.file_exists(path)
   return vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1
 end
