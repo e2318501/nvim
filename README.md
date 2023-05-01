@@ -7,5 +7,3 @@
 ![commit activity](https://img.shields.io/github/commit-activity/m/tsuoihito/nvim)
 ![last commit](https://img.shields.io/github/last-commit/tsuoihito/nvim)
 ![license](https://img.shields.io/github/license/tsuoihito/nvim)
-
-![screenshot](https://dl.dropboxusercontent.com/s/29drz8mmu5gxstf/my_neovim_configuration.png)
