@@ -358,6 +358,9 @@ function s.setup_plugins()
   }
 
   local config = {
+    install = {
+      colorscheme = { "everforest", "habamax" },
+    },
     ui = {
       icons = {
         cmd = "⌘",
