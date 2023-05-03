@@ -1,5 +1,5 @@
 ---All of my Neovim configuration
----@author nutchi <nutchi.net>
+---@author Nutchi <nutchi.net>
 
 
 ---A scope for local functions, like `s:` in Vim Script.
