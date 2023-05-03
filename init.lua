@@ -355,6 +355,10 @@ function s.setup_plugins()
       "lukas-reineke/indent-blankline.nvim",
       event = "UIEnter",
     },
+    {
+      "famiu/bufdelete.nvim",
+      event = "UIEnter",
+    },
   }
 
   local config = {
