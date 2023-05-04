@@ -1,5 +1,5 @@
 {
-  "aerial.nvim": { "branch": "master", "commit": "3721075a6903859c4936bdc7e5a4c345f93d3aac" },
+  "aerial.nvim": { "branch": "master", "commit": "d8f2699f7ae0e5eb62424d7b2ad80ce30179ee92" },
   "badapple.nvim": { "branch": "master", "commit": "d3865cc2c30450022efb0e6c9056595372f40626" },
   "bufdelete.nvim": { "branch": "master", "commit": "8933abc09df6c381d47dc271b1ee5d266541448e" },
   "bufferize.vim": { "branch": "main", "commit": "ec7c4445a97f19e5784a6fb6ad3c3d4a8ff505ac" },
@@ -24,7 +24,7 @@
   "matchparen.nvim": { "branch": "main", "commit": "dc511ea561bb34c99d0fad9a6fd08bb0e4187a5e" },
   "null-ls.nvim": { "branch": "main", "commit": "33b853a3933eed3137cd055aac4e539e69832ad0" },
   "nvim-autopairs": { "branch": "master", "commit": "7747bbae60074acf0b9e3a4c13950be7a2dff444" },
-  "nvim-cmp": { "branch": "main", "commit": "c7189282199d6f92d3becb91d4f44fc734f75f98" },
+  "nvim-cmp": { "branch": "main", "commit": "8d2f190506013064775ec328377e196ab343ad61" },
   "nvim-dap": { "branch": "master", "commit": "6cedcb527e264c8f25e86afa8dae74c6692dee51" },
   "nvim-jdtls": { "branch": "master", "commit": "aa04fc0e4d8acbfa43efc6a6f7162b01987257a1" },
   "nvim-lspconfig": { "branch": "master", "commit": "3bd4ca412982afa6f88bb7ef890660cee51c3e58" },
