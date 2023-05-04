@@ -496,7 +496,7 @@ end
 ---@param configuration string
 ---@param runtimes table
 function s.start_jdtls_common(java, jar, configuration, data, runtimes)
-  if (s.executable(java) and s.file_exists(jar) and s.file_exists(configuration) and s.file_exists(data)) then
+  if (s.executable(java) and s.file_exists(jar) and s.file_exists(configuration)) then
     local config = {
       cmd = {
         java,
