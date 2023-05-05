@@ -469,6 +469,8 @@ end
 function s.start_jdtls()
   if s.on_windows() then
     s.start_jdtls_windows()
+  elseif s.on_linux() then
+    s.start_jdtls_linux()
   end
 end
 
@@ -486,6 +488,25 @@ function s.start_jdtls_windows()
     {
       name = "JavaSE-17",
       path = vim.fn.expand("$ProgramFiles/Eclipse Adoptium/jdk-17.0.7.7-hotspot/"),
+    },
+  }
+  s.start_jdtls_common(java, jar, configuration, data, runtimes)
+end
+
+function s.start_jdtls_linux()
+  local java = "/usr/lib/jvm/java-17-openjdk-amd64/bin/java"
+  local jar = vim.fn.expand("$HOME/.local/share/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_*.jar")
+  local configuration = vim.fn.expand("$HOME/.local/share/eclipse.jdt.ls/config_linux")
+  local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+  local data = vim.fn.expand("$HOME/.local/share/eclipse.jdt.ls/data/" .. project_name)
+  local runtimes = {
+    {
+      name = "JavaSE-1.8",
+      path = "/usr/lib/jvm/java-8-openjdk-amd64/",
+    },
+    {
+      name = "JavaSE-17",
+      path = "/usr/lib/jvm/java-17-openjdk-amd64/",
     },
   }
   s.start_jdtls_common(java, jar, configuration, data, runtimes)
