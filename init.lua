@@ -42,7 +42,7 @@ function s.setup_general()
   vim.api.nvim_win_set_option(0, "number", true)
   vim.api.nvim_win_set_option(0, "cursorline", true)
   vim.api.nvim_win_set_option(0, "signcolumn", "yes:2")
-  vim.api.nvim_win_set_option(0, "winblend", 10)
+  vim.api.nvim_win_set_option(0, "winblend", 0)
 
   s.setup_formatoptions()
   s.setup_terminal()
@@ -612,12 +612,6 @@ function s.setup_mason_null_ls()
 end
 
 function s.setup_telescope()
-  require("telescope").setup({
-    defaults = {
-      winblend = 10,
-    },
-  })
-
   local builtin = require("telescope.builtin")
   vim.keymap.set("n", "<leader>tf", builtin.find_files)
   vim.keymap.set("n", "<leader>tg", builtin.git_files)
@@ -638,7 +632,6 @@ function s.setup_nvim_cmp()
       { name = "nvim_lsp" },
       { name = "nvim_lsp_signature_help" },
       { name = "path" },
-      { name = "calc" },
     },
     snippet = {
       expand = function(args)
@@ -676,7 +669,6 @@ function s.setup_nvim_cmp()
       { name = "nvim_lsp" },
       { name = "nvim_lsp_signature_help" },
       { name = "path" },
-      { name = "calc" },
       { name = "emoji" },
     },
   })
