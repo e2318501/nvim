@@ -64,6 +64,7 @@ end
 function s.setup_terminal()
   vim.api.nvim_create_autocmd("TermOpen", {
     callback = function()
+      vim.api.nvim_win_set_option(0, "number", false)
       vim.cmd("startinsert")
     end,
   })
@@ -148,7 +149,7 @@ end
 
 ---Define shortcuts and my own functions.
 function s.setup_utils()
-  vim.api.nvim_create_user_command("Vimrc", "edit $MYVIMRC", { nargs = 0 })
+  vim.api.nvim_create_user_command("VimRC", "edit $MYVIMRC", { nargs = 0 })
   vim.api.nvim_create_user_command("LightMode", "set background=light", { nargs = 0 })
   vim.api.nvim_create_user_command("DarkMode", "set background=dark", { nargs = 0 })
   vim.api.nvim_create_user_command("CdHere", "cd %:h", { nargs = 0 })
@@ -208,7 +209,7 @@ function s.setup_plugins()
       config = s.setup_nvim_jdtls,
     },
     {
-      "tsuoihito/vim-bufferlist",
+      "nutchinet/vim-bufferlist",
       event = "UIEnter",
       config = s.setup_vim_bufferlist,
     },
@@ -243,6 +244,7 @@ function s.setup_plugins()
     {
       "RRethy/vim-illuminate",
       event = "UIEnter",
+      config = s.setup_illuminate,
     },
     {
       "mattn/vim-maketable",
@@ -309,15 +311,7 @@ function s.setup_plugins()
       event = "UIEnter",
     },
     {
-      "hrsh7th/cmp-calc",
-      event = "UIEnter",
-    },
-    {
       "hrsh7th/cmp-emoji",
-      event = "UIEnter",
-    },
-    {
-      "hrsh7th/cmp-cmdline",
       event = "UIEnter",
     },
     {
@@ -338,14 +332,15 @@ function s.setup_plugins()
       "iamcco/markdown-preview.nvim",
       event = "UIEnter",
     },
-    {
-      "petertriho/nvim-scrollbar",
-      event = "UIEnter",
-      config = s.setup_nvim_scrollbar,
-      dependencies = {
-        "sainnhe/everforest",
-      },
-    },
+    -- The view of scroll bar is broken on Alacritty, Windows 10.
+    -- {
+    --   "petertriho/nvim-scrollbar",
+    --   event = "UIEnter",
+    --   config = s.setup_nvim_scrollbar,
+    --   dependencies = {
+    --     "sainnhe/everforest",
+    --   },
+    -- },
     {
       "lewis6991/gitsigns.nvim",
       event = "UIEnter",
@@ -366,6 +361,7 @@ function s.setup_plugins()
       colorscheme = { "everforest", "habamax" },
     },
     ui = {
+      border = "solid",
       icons = {
         cmd = "⌘",
         config = "🛠",
@@ -611,6 +607,15 @@ function s.setup_mason_null_ls()
   })
 end
 
+function s.setup_illuminate()
+  require("illuminate").configure({
+    providers = {
+      "lsp",
+      "treesitter",
+    },
+  })
+end
+
 function s.setup_telescope()
   local builtin = require("telescope.builtin")
   vim.keymap.set("n", "<leader>tf", builtin.find_files)
@@ -717,7 +722,11 @@ end
 
 function s.setup_nvim_scrollbar()
   require("scrollbar").setup({
+    throttle_ms = 10,
     marks = {
+      Cursor = {
+        text = "",
+      },
       Error = {
         highlight = "DiagnosticSignError",
       },
@@ -737,17 +746,21 @@ end
 ---Open terminal in a floating window.
 function s.open_floating_terminal()
   local term_bufnr = s.get_term_bufnr()
+
   if term_bufnr ~= nil then
     s.open_floating_window(term_bufnr)
     vim.cmd("startinsert")
   else
     local new_term_bufnr = vim.api.nvim_create_buf(false, false)
-    --- @type integer
-    vimrc_data.float_term_bufnr = new_term_bufnr
-    s.open_floating_window(new_term_bufnr)
-    vim.cmd("terminal")
-    vim.keymap.set("n", "<Esc>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
-    vim.keymap.set({ "n", "v", "x", "s", "o", "i", "t" }, "<F4>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
+
+    if (new_term_bufnr ~= 0) then
+      --- @type integer
+      vimrc_data.float_term_bufnr = new_term_bufnr
+      s.open_floating_window(new_term_bufnr)
+      vim.cmd("terminal")
+      vim.keymap.set("n", "<Esc>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
+      vim.keymap.set({ "n", "v", "x", "s", "o", "i", "t" }, "<F4>", "<cmd>quit<CR>", { buffer = new_term_bufnr })
+    end
   end
 end
 
@@ -764,6 +777,7 @@ end
 
 ---Open a floating window.
 ---@param bufnr integer
+---@return integer
 function s.open_floating_window(bufnr)
   local columns = vim.api.nvim_get_option("columns")
   local lines = vim.api.nvim_get_option("lines")
@@ -776,9 +790,11 @@ function s.open_floating_window(bufnr)
     col = (columns - width) * 0.5,
     row = (lines - height) * 0.5,
     anchor = "NW",
-    style = "minimal"
+    style = "minimal",
+    border = "solid",
   }
-  vim.api.nvim_open_win(bufnr, 0, config)
+
+  return vim.api.nvim_open_win(bufnr, true, config)
 end
 
 ---Return true if the list contains the element, otherwise false.
