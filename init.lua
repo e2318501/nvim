@@ -361,7 +361,7 @@ function s.setup_plugins()
       colorscheme = { "everforest", "habamax" },
     },
     ui = {
-      border = "solid",
+      border = "none",
       icons = {
         cmd = "⌘",
         config = "🛠",
@@ -791,7 +791,7 @@ function s.open_floating_window(bufnr)
     row = (lines - height) * 0.5,
     anchor = "NW",
     style = "minimal",
-    border = "solid",
+    border = "none",
   }
 
   return vim.api.nvim_open_win(bufnr, true, config)
