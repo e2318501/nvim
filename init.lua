@@ -16,6 +16,7 @@ function s.main()
   s.setup_lsp_ui()
   s.setup_utils()
   s.setup_plugins()
+  s.setup_colorscheme()
 end
 
 ---Configure general options.
@@ -528,7 +529,7 @@ function s.start_jdtls_common(java, jar, configuration, data, runtimes)
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
         "-jar", jar,
         "-configuration", configuration,
-        "-data", data
+        "-data", data,
       },
       root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml" }),
       settings = {
@@ -544,7 +545,7 @@ function s.start_jdtls_common(java, jar, configuration, data, runtimes)
           },
           configuration = {
             runtimes = runtimes
-          }
+          },
         },
       },
       init_options = {
@@ -561,8 +562,6 @@ function s.setup_everforest()
   vim.api.nvim_set_var("everforest_background", "hard")
   vim.api.nvim_set_var("everforest_disable_italic_comment", 1)
   vim.api.nvim_set_var("everforest_diagnostic_virtual_text", "colored")
-  vim.cmd("colorscheme everforest")
-  vim.api.nvim_set_option("background", "dark")
 end
 
 function s.setup_vim_bufferlist()
@@ -578,7 +577,7 @@ function s.setup_mason_lspconfig()
       local ignored_servers = { "jdtls" }
       if not s.contains(ignored_servers, server_name) then
         require("lspconfig")[server_name].setup({
-          capabilities = require("cmp_nvim_lsp").default_capabilities()
+          capabilities = require("cmp_nvim_lsp").default_capabilities(),
         })
       end
     end,
@@ -617,12 +616,16 @@ function s.setup_illuminate()
 end
 
 function s.setup_telescope()
-  local builtin = require("telescope.builtin")
-  vim.keymap.set("n", "<leader>tf", builtin.find_files)
-  vim.keymap.set("n", "<leader>tg", builtin.git_files)
-  vim.keymap.set("n", "<leader>tb", builtin.buffers)
-  vim.keymap.set("n", "<leader>th", builtin.help_tags)
-  vim.keymap.set("n", "<leader>tq", builtin.quickfix)
+  require("telescope").setup({
+    defaults = {
+      borderchars = { "─", "│", "─", "│", "┌", "┐", "┘", "└" },
+      results_title = false,
+      prompt_title = false,
+    },
+  })
+
+  vim.api.nvim_set_hl(0, "TelescopeNormal", { link = "NormalFloat" })
+  vim.api.nvim_set_hl(0, "TelescopeBorder", { link = "FloatBorder" })
 end
 
 function s.setup_aerial()
@@ -741,6 +744,12 @@ function s.setup_nvim_scrollbar()
       },
     },
   })
+end
+
+---Do `:colorscheme`.
+function s.setup_colorscheme()
+  vim.cmd("colorscheme everforest")
+  vim.api.nvim_set_option("background", "dark")
 end
 
 ---Open terminal in a floating window.
