@@ -623,9 +623,6 @@ function s.setup_telescope()
       prompt_title = false,
     },
   })
-
-  vim.api.nvim_set_hl(0, "TelescopeNormal", { link = "NormalFloat" })
-  vim.api.nvim_set_hl(0, "TelescopeBorder", { link = "FloatBorder" })
 end
 
 function s.setup_aerial()
@@ -800,10 +797,15 @@ function s.open_floating_window(bufnr)
     row = (lines - height) * 0.5,
     anchor = "NW",
     style = "minimal",
-    border = "none",
+    border = "single",
   }
 
-  return vim.api.nvim_open_win(bufnr, true, config)
+  local winnr = vim.api.nvim_open_win(bufnr, true, config)
+  if (winnr ~= 0) then
+    vim.api.nvim_win_set_option(winnr, "winhighlight", "NormalFloat:Normal,FloatBorder:Normal")
+  end
+
+  return winnr
 end
 
 ---Return true if the list contains the element, otherwise false.
