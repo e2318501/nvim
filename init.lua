@@ -195,11 +195,6 @@ function s.setup_plugins()
       },
     },
     {
-      "sainnhe/everforest",
-      event = "UIEnter",
-      config = s.setup_everforest,
-    },
-    {
       "windwp/nvim-autopairs",
       event = "UIEnter",
       config = s.setup_nvim_autopairs,
@@ -333,15 +328,11 @@ function s.setup_plugins()
       "iamcco/markdown-preview.nvim",
       event = "UIEnter",
     },
-    -- The view of scroll bar is broken on Alacritty, Windows 10.
-    -- {
-    --   "petertriho/nvim-scrollbar",
-    --   event = "UIEnter",
-    --   config = s.setup_nvim_scrollbar,
-    --   dependencies = {
-    --     "sainnhe/everforest",
-    --   },
-    -- },
+    {
+      "petertriho/nvim-scrollbar",
+      event = "UIEnter",
+      config = s.setup_nvim_scrollbar,
+    },
     {
       "lewis6991/gitsigns.nvim",
       event = "UIEnter",
@@ -355,11 +346,15 @@ function s.setup_plugins()
       "famiu/bufdelete.nvim",
       event = "UIEnter",
     },
+    {
+      "folke/tokyonight.nvim",
+      event = "UIEnter",
+    },
   }
 
   local config = {
     install = {
-      colorscheme = { "everforest", "habamax" },
+      colorscheme = { "tokyonight", "habamax" },
     },
     ui = {
       border = "none",
@@ -558,12 +553,6 @@ function s.start_jdtls_common(java, jar, configuration, data, runtimes)
   end
 end
 
-function s.setup_everforest()
-  vim.api.nvim_set_var("everforest_background", "hard")
-  vim.api.nvim_set_var("everforest_disable_italic_comment", 1)
-  vim.api.nvim_set_var("everforest_diagnostic_virtual_text", "colored")
-end
-
 function s.setup_vim_bufferlist()
   vim.keymap.set("n", "<Space>", "<cmd>call BufferList()<CR>")
 end
@@ -618,7 +607,6 @@ end
 function s.setup_telescope()
   require("telescope").setup({
     defaults = {
-      borderchars = { "─", "│", "─", "│", "┌", "┐", "┘", "└" },
       results_title = false,
       prompt_title = false,
     },
@@ -745,8 +733,7 @@ end
 
 ---Do `:colorscheme`.
 function s.setup_colorscheme()
-  vim.cmd("colorscheme everforest")
-  vim.api.nvim_set_option("background", "dark")
+  vim.cmd("colorscheme tokyonight")
 end
 
 ---Open terminal in a floating window.
@@ -787,17 +774,17 @@ end
 function s.open_floating_window(bufnr)
   local columns = vim.api.nvim_get_option("columns")
   local lines = vim.api.nvim_get_option("lines")
-  local width = math.ceil(columns * 0.7)
-  local height = math.ceil(lines * 0.7)
+  local width = math.floor(columns * 0.8)
+  local height = math.floor(lines * 0.8)
   local config = {
     relative = "editor",
     width = width,
     height = height,
-    col = (columns - width) * 0.5,
-    row = (lines - height) * 0.5,
+    col = math.floor((columns - width) * 0.5),
+    row = math.floor((lines - height) * 0.5),
     anchor = "NW",
     style = "minimal",
-    border = "single",
+    border = "rounded",
   }
 
   local winnr = vim.api.nvim_open_win(bufnr, true, config)
