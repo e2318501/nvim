@@ -146,6 +146,12 @@ function s.setup_lsp_ui()
     },
     signs = false,
   })
+
+  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
+    vim.lsp.handlers.hover, {
+      border = "rounded"
+    }
+  )
 end
 
 ---Define shortcuts and my own functions.
@@ -203,11 +209,6 @@ function s.setup_plugins()
       "mfussenegger/nvim-jdtls",
       event = "UIEnter",
       config = s.setup_nvim_jdtls,
-    },
-    {
-      "nutchinet/vim-bufferlist",
-      event = "UIEnter",
-      config = s.setup_vim_bufferlist,
     },
     {
       "neovim/nvim-lspconfig",
@@ -278,7 +279,7 @@ function s.setup_plugins()
       config = true,
     },
     {
-      "tsuoihito/badapple.nvim",
+      "nutchinet/badapple.nvim",
       event = "UIEnter",
     },
     {
@@ -551,10 +552,6 @@ function s.start_jdtls_common(java, jar, configuration, data, runtimes)
 
     require("jdtls").start_or_attach(config)
   end
-end
-
-function s.setup_vim_bufferlist()
-  vim.keymap.set("n", "<Space>", "<cmd>call BufferList()<CR>")
 end
 
 function s.setup_mason_lspconfig()
