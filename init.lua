@@ -1,6 +1,4 @@
 ---All of my Neovim configuration
----@author Nutchi <nutchi.net>
-
 
 ---A scope for local functions, like `s:` in Vim Script.
 ---I want to order functions by abstraction level, so forward-definition is needed.
@@ -31,7 +29,7 @@ function s.setup_general()
   vim.api.nvim_set_option("omnifunc", "syntaxcomplete#Complete")
   vim.api.nvim_set_option("selection", "old")
   vim.api.nvim_set_option("cmdheight", 1)
-  vim.api.nvim_set_option("laststatus", 0)
+  vim.api.nvim_set_option("laststatus", 3)
   vim.api.nvim_set_option("ruler", false)
   vim.api.nvim_set_option("splitbelow", true)
   vim.api.nvim_set_option("termguicolors", true)
@@ -145,6 +143,7 @@ function s.setup_lsp_ui()
       prefix = "*",
     },
     signs = false,
+    float = { border = "rounded" }
   })
 
   vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
@@ -290,6 +289,9 @@ function s.setup_plugins()
       "hrsh7th/nvim-cmp",
       event = "UIEnter",
       config = s.setup_nvim_cmp,
+      dependencies = {
+        "onsails/lspkind.nvim",
+      },
     },
     {
       "hrsh7th/cmp-nvim-lsp",
@@ -351,28 +353,71 @@ function s.setup_plugins()
       "folke/tokyonight.nvim",
       event = "UIEnter",
     },
+		{
+			"nvim-treesitter/nvim-treesitter",
+			event = "UIEnter",
+			config = s.setup_treesitter,
+		},
+    {
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      event = "UIEnter",
+    },
+		{
+			"tanvirtin/monokai.nvim",
+			event = "UIEnter",
+		},
+    {
+      "projekt0n/github-nvim-theme",
+      event = "UIEnter",
+    },
+    {
+      "navarasu/onedark.nvim",
+      event = "UIEnter",
+    },
+    {
+      "sainnhe/sonokai",
+      event = "UIEnter",
+    },
+    {
+      "sainnhe/everforest",
+      event = "UIEnter",
+    },
+    {
+      "sainnhe/edge",
+      event = "UIEnter",
+    },
+    {
+      "nvim-lualine/lualine.nvim",
+      event = "UIEnter",
+      config = s.setup_lualine,
+    },
+    {
+      "nvim-tree/nvim-web-devicons",
+      event = "UIEnter",
+    },
+    {
+      "lambdalisue/fern-renderer-nerdfont.vim",
+      event = "UIEnter",
+      config = s.setup_fern_renderer_nerdfont,
+    },
+    {
+      "lambdalisue/nerdfont.vim",
+      event = "UIEnter",
+    },
+    {
+      "onsails/lspkind.nvim",
+      event = "UIEnter",
+    },
+    {
+      "akinsho/bufferline.nvim",
+      event = "UIEnter",
+      config = true,
+    },
   }
 
   local config = {
     install = {
-      colorscheme = { "tokyonight", "habamax" },
-    },
-    ui = {
-      border = "none",
-      icons = {
-        cmd = "⌘",
-        config = "🛠",
-        event = "📅",
-        ft = "📂",
-        init = "⚙",
-        keys = "🗝",
-        plugin = "🔌",
-        runtime = "💻",
-        source = "📄",
-        start = "🚀",
-        task = "📌",
-        lazy = "💤 ",
-      },
+      colorscheme = { "edge", "habamax" },
     },
     performance = {
       rtp = {
@@ -414,6 +459,10 @@ end
 
 function s.setup_fern_git_status()
   vim.fn["fern_git_status#init"]()
+end
+
+function s.setup_fern_renderer_nerdfont()
+  vim.api.nvim_set_var("fern#renderer", "nerdfont")
 end
 
 function s.setup_nvim_autopairs()
@@ -652,6 +701,13 @@ function s.setup_nvim_cmp()
             and not context.in_syntax_group("Comment")
       end
     end,
+    formatting = {
+      format = require("lspkind").cmp_format({
+        mode = "symbol",
+        maxwidth = 50,
+        ellipsis_char = "...",
+      }),
+    },
   })
 
   cmp.setup.filetype("markdown", {
@@ -728,9 +784,37 @@ function s.setup_nvim_scrollbar()
   })
 end
 
+function s.setup_treesitter()
+  require("nvim-treesitter.configs").setup({
+    highlight = {
+      enable = true,
+    },
+    textobjects = {
+      select = {
+        enable = true,
+        lookahead = true,
+        keymaps = {
+          ["af"] = "@function.outer",
+          ["if"] = "@function.inner",
+          ["ac"] = "@class.outer",
+          ["ic"] = "@class.inner",
+          ["as"] = "@scope",
+        },
+        include_surrounding_whitespace = true,
+      },
+    },
+  })
+end
+
+function s.setup_lualine()
+  require("lualine").setup({
+    extensions = { "aerial", "fern", "fugitive", "lazy", "quickfix" }
+  })
+end
+
 ---Do `:colorscheme`.
 function s.setup_colorscheme()
-  vim.cmd("colorscheme tokyonight")
+  vim.cmd("colorscheme edge")
 end
 
 ---Open terminal in a floating window.
